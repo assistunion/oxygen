@@ -1,0 +1,9 @@
+[submodule "lib/yaml-php"]
+	path = lib/yaml-php
+	url = https://github.com/yaml/yaml-php.git
+[submodule "lib/lessphp"]
+	path = lib/lessphp
+	url = https://github.com/leafo/lessphp.git
+[submodule "lib/minify"]
+	path = lib/minify
+	url = https://github.com/mrclay/minify.git
