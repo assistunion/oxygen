@@ -16,6 +16,16 @@
             $this->put = new Oxygen_Putter($this);
         }
 
+        // Wraps given $exception into Oxygen_Exception_Wrapper
+        // unless $exception is instance of Oxygen_Excpeion itself
+        public static function wrap($exception) {
+            if ($exception instanceof Oxygen_Excpeion) {
+                return $exception;
+            } else {
+                return Oxygen_Scope::root()->Oxygen_Exception_Wrapper($exception);
+            }
+        }
+
         public function getScope() {
             return $this->scope;
         }
