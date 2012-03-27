@@ -1,3 +1,3 @@
 <!-- BEGIN: javascripts -->
-<?$this->scope->js->put->view()?>
+<?$this->getScope()->js->put->view()?>
 <!-- END: javascripts -->

@@ -132,6 +132,7 @@
         }
 
         private static $root = null;
+
         public static function root(){
             return self::$root;
         }
@@ -140,6 +141,10 @@
             if(!class_exists($class)) {
                 Oxygen_Loader::loadClass($class);
             }
+        }
+
+        public function getScope() {
+            return $this;
         }
         
         public static function __class_construct(){

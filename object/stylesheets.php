@@ -1,3 +1,3 @@
 <!-- BEGIN: Stylesheets -->
-<?$this->scope->css->put->view()?>
+<?$this->getScope()->css->put->view()?>
 <!-- END: Stylesheets -->

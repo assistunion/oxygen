@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <?
-    $this->scope->js->extra('http://code.jquery.com/jquery-1.7.1.min.js');
+    $this->getScope()->js->extra('http://code.jquery.com/jquery-1.7.1.min.js');
     try {
         $body = $this->get->view();
     } catch (Oxygen_Exception $ex) {

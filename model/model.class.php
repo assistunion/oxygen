@@ -67,10 +67,6 @@
                 }
             }
         }
-        
-        public function __toString() {
-            return get_class($this);
-        }
 
         public function offsetGet($data) {
             if(is_string($data)) {
