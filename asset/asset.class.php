@@ -5,6 +5,8 @@
         public $url_list = array();
         public $idx = array();
         public $cache = array();
+        public $pipeline = false;
+        public $process = false;
         private $ext = '';
 
         public function __construct($ext) {

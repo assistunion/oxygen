@@ -16,6 +16,7 @@
         public function executeResource($path,$resource,$args) {
             $class = get_class($this);
             $scope = $this->getScope();
+            $scope->less->add($class,$resource);
             $scope->css->add($class,$resource);
             $scope->js->add($class,$resource);
             include($path);

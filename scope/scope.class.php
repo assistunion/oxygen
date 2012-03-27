@@ -151,6 +151,7 @@
            $scope = new Oxygen_Scope();
            $scope->css = $scope->Oxygen_Asset_CSS();
            $scope->js = $scope->Oxygen_Asset_JS();
+           $scope->less = $scope->Oxygen_Asset_LESS();
            self::$root = $scope;
         }
 
