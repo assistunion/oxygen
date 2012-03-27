@@ -60,7 +60,7 @@
                 foreach($data as $k => $d) {
                     if(!isset($value[$k])) {
                         $this->throwException(
-                            Utils_Text::format(self::MISSING_DATA,$k)
+                            Oxygen_Utils_Text::format(self::MISSING_DATA,$k)
                         );
                     }
                     $this->offsetSet($d, $value[$k]);
@@ -72,7 +72,7 @@
             if(is_string($data)) {
                 if(!isset($this->current[$data])) {
                     $this->throwException(
-                        Utils_Text::format(self::MISSING_DATA,$k)
+                        Oxygen_Utils_Text::format(self::MISSING_DATA,$k)
                     );
                 }
                 $result = $this->current[$data];

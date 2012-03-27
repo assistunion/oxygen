@@ -22,15 +22,15 @@
             $this->time  = $time;
             if(!isset($def[self::FIELDS])) {
                 $this->throwException(
-                    Utils_Text::format(self::FIELDS_PART_MISSING, $class)
+                    Oxygen_Utils_Text::format(self::FIELDS_PART_MISSING, $class)
                 );
             }
             foreach($def[self::FIELDS] as $name => $field_def) {
                 if(!isset($field_def[self::FIELD_TYPE])) $this->throwException(
-                    Utils_Text::format(self::TYPE_IS_MISSING, $class, $name)
+                    Oxygen_Utils_Text::format(self::TYPE_IS_MISSING, $class, $name)
                 );
                 $class = Oxygen_Loader::correctCase(
-                    Utils_Text::format(self::TYPE_CLASS, ucfirst($field_def[self::FIELD_TYPE]))
+                    Oxygen_Utils_Text::format(self::TYPE_CLASS, ucfirst($field_def[self::FIELD_TYPE]))
                 );
                 $this->fields[$name] = $this->scope->$class($this,$name,$field_def);
             }
