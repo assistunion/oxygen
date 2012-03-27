@@ -19,6 +19,17 @@
             $this->url_list[] = $url;
         }
 
+        // Calculate hash code on basis of
+        // paths and their modification times
+        public function getHashCode() {
+            $toHash = $this->path_list; // copy;
+            foreach($this->path_list as $path) {
+                $toHash []= filemtime($path);
+            }
+            $str = implode('', $toHash);
+            return sha1($str);
+        }
+
         public function add($class,$resource) {
             $key = $class . '::' . $resource;
             if(isset($this->cache[$key])) return;
