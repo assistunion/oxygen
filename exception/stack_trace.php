@@ -1,8 +1,6 @@
-<table style="font-size:1em;margin:8px" cellspacing="0" cellpadding="3px">
+<table class="trace">
 <?foreach($this->getWrapTrace() as $t):?><?$t=(object)$t?>
-    <tr onmouseenter="this.style.backgroundColor='#FFFCF0'"
-        onmouseleave="this.style.backgroundColor=''"
-        style="cursor:default">
+    <tr>
         <td class="oxygen-exception-func" 
             style="white-space: nowrap;
                    vertical-align: top;
