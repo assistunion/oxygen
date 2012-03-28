@@ -40,6 +40,7 @@
 
         public function executeResource($path,$resource,$args) {
             $class = get_class($this);
+            $this->scope->less->add($class,$resource);
             $this->scope->css->add($class,$resource);
             $this->scope->js->add($class,$resource);
             include($path);

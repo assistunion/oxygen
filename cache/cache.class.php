@@ -9,7 +9,7 @@
 		public abstract function storeAll($key, $array);
 
 		public function offsetGet($key){
-			return $this->load($key)
+			return $this->load($key);
 		}
 
 		public function offsetSet($key, $value) {

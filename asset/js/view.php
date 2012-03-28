@@ -1,3 +1,3 @@
-<?foreach($this->url_list as $url):?>
-<script language="javascript" type="text/javascript" src="<?=$url?>"></script>
-<?endforeach?>
+<script language="javascript" type="text/javascript">
+<?=$this->getScope()->cache[$this->compile()]?>
+</script>

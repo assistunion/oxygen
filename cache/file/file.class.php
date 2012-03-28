@@ -17,6 +17,7 @@
 				  . DIRECTORY_SEPARATOR 
 				  . Oxygen_Utils_Text::format(self::FILE_TEMPLATE,$hash)
 				  ;
+			return $path;
 		}
 
 		// Loads given key. In case of nonexistent key 
@@ -37,22 +38,32 @@
 		public function storeAll($key,$array) {
 			$path = $this->getPath($key);
 			$f = fopen($path,'w');
+			$ex = null;
 			try {
 				foreach ($array as $value) {
 					fwrite($f, $value);
 				}
-			} finally {
-				fclose($f);
+			} catch(Exception $e) {
+				$ex = $e;
+			}
+			fclose($f);
+			if($ex !== null) {
+				throw $ex;
 			}
 		}
 
 		public function store($key, $value) {
 			$path = $this->getPath($key);
 			$f = fopen($path,'w');
+			$ex = null;
 			try {
 				fwrite($f, $value);
-			} finally {
-				fclose($f);
+			} catch(Exception $e) {
+				$ex = $e;
+			}
+			fclose($f);
+			if($ex !== null) {
+				throw $ex;
 			}
 		}
 
