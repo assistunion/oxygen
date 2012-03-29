@@ -6,7 +6,7 @@
             parent::__construct('.js');
         }
         protected function processOne($path) {
-        	$source = file_get_contents($path);
+        	$source = parent::processOne($path);
         	if($this->isUrl($path)){
         		return $source;
         	} else {

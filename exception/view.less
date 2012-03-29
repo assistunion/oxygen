@@ -1,3 +1,9 @@
+.link-like {
+	cursor: pointer;
+	color: #69C;
+	text-decoration: underline;
+}
+
 .oxygen-exception {
 	font-family:Verdana;
 	font-size:0.8em;
@@ -8,19 +14,49 @@
         margin:4px;
         border-radius:4px;
         border:1px solid #EEE0E0;
-        padding:10px
+        padding:10px;
 	}
 	table.trace {
 		font-size:1em;
 		margin:8px;
 		tr {
 			cursor: default;
-			.hover {
+			&.hover {
 				background-color:#FFFCF0;	
 			}
 		}
 		td {
+			vertical-align: top;
 			padding: 3px;
+			&.function {
+				white-space: nowrap;
+			}
+			span.line {
+				color: #C00000;
+			}
+		}
+	}	
+	ul.arguments {
+		li.complex-argument {
+			.type {
+				.link-like;
+			}
+			.value {
+				padding:10px;
+				border:1px solid #DDC;
+				font-size:11px;
+				display:none;
+				background-color:#FFFFF0;
+			}
+		}
+		li.simple-argument {
+			.type {
+			}
+			.value {
+				color: green;
+				font-weight: bold;
+			}
 		}
 	}
+
 }

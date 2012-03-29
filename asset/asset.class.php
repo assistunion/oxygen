@@ -4,7 +4,7 @@
         public $path_list = array();
         public $url_list = array();
         public $idx = array();
-        public $cache = array();
+        public $added = array();
         public $pipeline = false;
         public $process = false;
         private $ext = '';
@@ -12,6 +12,7 @@
         private $compiled = false;
 
         const URL_REGEX = "|^https?://|";
+        const REMOTE_KEY_TEMPLATE = 'cached-url-{0}';
 
         public function __construct($ext) {
             parent::__construct();
@@ -44,8 +45,22 @@
             return $this->hash;
         }
 
+        protected function getCachedUrlContent($url) {
+            $cache = $this->getScope()->cache;
+            $key = Oxygen_Utils_Text::format(self::REMOTE_KEY_TEMPLATE,$url);
+            if(!isset($cache[$key])){
+                return $cache[$key] = file_get_contents($url);
+            } else {
+                return $cache[$key];
+            }
+        }
+
         protected function processOne($path) {
-            return file_get_contents($path);
+            if($this->isUrl($path)){
+                return $this->getCachedUrlContent($path);
+            } else {
+                return file_get_contents($path);
+            }
         }
 
         protected function process($source) {
@@ -77,8 +92,8 @@
 
         public function add($class,$resource) {
             $key = $class . '::' . $resource;
-            if(isset($this->cache[$key])) return;
-            $this->cache[$key] = true;
+            if(isset($this->added[$key])) return;
+            $this->added[$key] = true;
             $this->invalidate();
             $p = Oxygen_Loader::pathFor($class,$resource,$this->ext);
             if($p !== false) {

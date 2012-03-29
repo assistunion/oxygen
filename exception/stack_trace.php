@@ -1,58 +1,42 @@
 <table class="trace">
 <?foreach($this->getWrapTrace() as $t):?><?$t=(object)$t?>
     <tr>
-        <td class="oxygen-exception-func" 
-            style="white-space: nowrap;
-                   vertical-align: top;
-                   ">
+        <td>
         <?if(isset($t->class)):?>
             <?=$t->class?><?=$t->type?><?=$t->function?>()
         <?else:?>
             <?=$t->function?>()
         <?endif?>
         </td>
-        <td style="white-space:nowrap;
-                   vertical-align:top;
-                   ">
+        <td>
         <?if(isset($t->file)):?> in <?=$t->file?><?else:?>no-file<?endif?>
         <?if(isset($t->line)):?>
-            <span style="color:#C00000"> at line: <?=$t->line?></span>
+            <span class="line"> at line: <?=$t->line?></span>
         <?endif?>
         </td>
         <td>
+        <ul class="arguments">
         <?if(isset($t->args)):?>
-            <ul>
             <?foreach($t->args as $arg):?>
-                <li>
-                <?if(is_object($arg)||is_array($arg)):?>
-                    <span style="cursor:pointer; 
-                                 color:#69C;
-                                 text-decoration:underline" 
-                          onclick="(function(x,y,z){x[y]=x[y]==z?'':z})
-                                   (this.nextSibling.style,'display','none')">
-                    <?if(is_object($arg)):?>
-                        <?=get_class($arg)?>
-                    <?elseif(is_array($arg)):?>
-                        Array
+            <?if(is_object($arg)||is_array($arg)):?>
+                <li class="complex-argument">
+                    <span class="type">
+                    <?if(is_object($arg)):?><?=get_class($arg)?>
+                    <?elseif(is_array($arg)):?>Array
                     <?endif?>
-                    </span><pre style="padding:10px;
-                                       border:1px solid #DDC;
-                                       font-size:11px;
-                                       display:none;
-                                       background-color:#FFFFF0"><?print_r($arg)?></pre>
-                <?else:?>
-                    <span style="color:#008000;
-                                 font-weight:bold"><?=htmlspecialchars($arg)?></span>: 
-                                 <?=gettype($arg)?>
-                <?endif?>
+                    </span><pre class="value"><?print_r($arg)?></pre>
+               </li>
+            <?else:?>
+                <li class="simple-argument">
+                    <span class="value"><?=htmlspecialchars($arg)?></span>: 
+                    <span class="type"><?=gettype($arg)?>
                 </li>
+            <?endif?>
             <?endforeach?>
-            </ul>
         <?else:?>
-            <ul>
-                <li>no arguments</li>
-            </ul>
+            <li>no arguments</li>
         <?endif?>
+        </ul>
         </td>
     </tr>
 <?endforeach?>

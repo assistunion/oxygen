@@ -5,6 +5,7 @@
     try {
         $body = $this->get->view();
         $less = $this->getScope()->less->compile();
+        $js   = $this->getScope()->js->compile();
     } catch (Oxygen_Exception $ex) {
         $body = $ex->get->view();
     } catch (Exception $ex) {
@@ -20,3 +21,4 @@
 <?=$this->put->javascripts()?>
 </body>
 </html>
+
