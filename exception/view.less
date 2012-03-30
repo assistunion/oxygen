@@ -7,6 +7,8 @@
 
 	font-family:Verdana;
 	font-size:0.8em;
+	background-image: virtual(url(a/test.png/test));
+
 	.details {
 		color:#800000;
         font-size:1.2em;
@@ -38,8 +40,13 @@
 		}
 	}	
 	ul.arguments {
-
+		list-style: none;
 		li.complex-argument {
+			background: icon(bullet_toggle_plus) no-repeat left top;
+			padding-left: 20px;
+			&.expanded {
+				background: icon(bullet_toggle_minus) no-repeat left top;
+			}
 			.type {
 				.link-like;
 			}
@@ -52,6 +59,8 @@
 			}
 		}
 		li.simple-argument {
+			background: icon(bullet_green) no-repeat left top;
+			padding-left: 20px;
 			.type {
 			}
 			.value {

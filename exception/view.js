@@ -11,8 +11,10 @@ $(componentClass).each(function(){
 			$type.click(function(){
 				if(hidden){
 					$value.show();
+					$argument.addClass('expanded');
 				} else {
 					$value.hide();
+					$argument.removeClass('expanded');
 				}
 				hidden = !hidden;
 			})
