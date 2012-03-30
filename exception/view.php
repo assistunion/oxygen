@@ -1,4 +1,4 @@
-<div class="oxygen-exception">
+<div class="<?=$this->getComponentClass()?>">
 <h1>Exception: <?=$this->getName()?></h1>
 <?$this->put->details()?>
 <?$this->put->stack_trace()?>

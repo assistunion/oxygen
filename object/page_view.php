@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <?
-    $this->getScope()->js->extra('http://code.jquery.com/jquery-1.7.1.min.js');
+    $this->getScope()->js->addRemote('http://code.jquery.com/jquery-1.7.1.min.js');
     try {
         $body = $this->get->view();
         $less = $this->getScope()->less->compile();

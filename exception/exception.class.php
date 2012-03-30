@@ -7,6 +7,7 @@
 
         protected $scope = null;
         protected $arg = null;
+        protected $stack = array();        
 
         public function __construct($message = "", $code=0, $previous = null) {
             parent::__construct($message, $code);
@@ -38,12 +39,33 @@
             return get_class($this);
         }
 
+        public function getComponentClass() {
+            if(($count = count($this->stack)) == 0) {
+                $this->throwException('getComponentClass() call is valid only within template code');
+            } else {
+                $usage = $this->stack[$count-1];
+                $usage->isVirtual = true;
+                return $usage->componentClass;
+            }
+        }
+
         public function executeResource($path,$resource,$args) {
             $class = get_class($this);
-            $this->scope->less->add($class,$resource);
-            $this->scope->css->add($class,$resource);
-            $this->scope->js->add($class,$resource);
-            include($path);
+            $scope = $this->getScope();
+            array_push($this->stack,(object)array(
+                'componentClass'=>Oxygen_Object::componentClassFor($class,$resource),
+                'isVirtual'=>false
+            ));
+            try {
+                include($path);
+            } catch(Exception $e) {
+                array_pop($this->stack);
+                throw $e;
+            }
+            $usage = array_pop($this->stack);
+            $scope->less->add($class,$resource,$usage);
+            $scope->css->add($class,$resource,$usage);
+            $scope->js->add($class,$resource,$usage);
         }
 
         public function __complete() {

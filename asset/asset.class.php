@@ -1,9 +1,7 @@
 <?
     abstract class Oxygen_Asset extends Oxygen_Object {
 
-        public $path_list = array();
-        public $url_list = array();
-        public $idx = array();
+        public $list = array();
         public $added = array();
         public $pipeline = false;
         public $process = false;
@@ -14,32 +12,44 @@
         const URL_REGEX = "|^https?://|";
         const REMOTE_KEY_TEMPLATE = 'cached-url-{0}';
 
+        const LOCAL_RESOURCE = 0;
+        const REMOTE_RESOURCE = 1;
+
+        const UNKNOWN_ASSET_TYPE = 'Unknown asset type';
+
         public function __construct($ext) {
             parent::__construct();
             $this->ext = $ext;
         }
         
-        public function extra($url) {
-            $this->path_list[] = $url;
-            $this->url_list[] = $url;
+        public function addRemote($url) {
+            if(isset($this->list[$url])) return;
+            $this->list[$url] = (object)array(
+                'type' => self::REMOTE_RESOURCE,
+                'path'  => $url,
+                'usage' => (object)array(
+                    'isVirtual' => false,
+                    'componentClass' => false
+                )
+            );
             $this->invalidate();
-        }
-
-        protected function isUrl($path){
-            return preg_match(self::URL_REGEX, $path);
+            $this->invalidate();
         }
 
         // Calculate hash code on basis of
         // paths and their modification times
         public function getHashCode() {
             if($this->hash === false) {
-                $toHash = $this->path_list; // copy;
-                foreach($this->path_list as $path) {
-                    if(!self::isUrl($path)){
-                        $toHash []= filemtime($path);
+                $toHash = array();
+                $list = $this->list;
+                ksort($list);
+                foreach($list as $key=>$asset) {
+                    $toHash[] = $key;
+                    if($asset->type == self::LOCAL_RESOURCE) {
+                        $toHash[] = filemtime($asset->path);
                     }
                 }
-                $str = implode('', $toHash);
+                $str = implode(':', $toHash);
                 $this->hash = sha1($str);
             }
             return $this->hash;
@@ -55,11 +65,11 @@
             }
         }
 
-        protected function processOne($path) {
-            if($this->isUrl($path)){
-                return $this->getCachedUrlContent($path);
+        protected function processOne($asset) {
+            if($asset->type === self::REMOTE_RESOURCE){
+                return $this->getCachedUrlContent($asset->path);
             } else {
-                return file_get_contents($path);
+                return file_get_contents($asset->path);
             }
         }
 
@@ -73,15 +83,15 @@
                 $cache = $this->scope->cache;
                 if(!isset($cache[$hash])) {
                     $source = array();
-                    foreach ($this->path_list as $path) {
-                        $source[] = $this->processOne($path);
+                    foreach ($this->list as $key => $asset) {
+                        $source[] = $this->processOne($asset);
                     }
                     $source = implode("\n",$source);
                     $cache[$hash] = $this->process($source);
                 }
                 $this->compiled = true;
             }
-            return $hash;
+            return $this->hash;
         }
 
         protected function invalidate() {
@@ -89,18 +99,21 @@
             $this->compiled = false;
         }
 
-
-        public function add($class,$resource) {
+        public function add($class,$resource,$usage) {
             $key = $class . '::' . $resource;
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $this->invalidate();
-            $p = Oxygen_Loader::pathFor($class,$resource,$this->ext);
-            if($p !== false) {
-                if(!isset($this->idx[$p])){
-                    $this->idx[$p] = true;
-                    $this->path_list[]= $p;
-                    $this->url_list[]= Config::toUrl($p);
+            $path = Oxygen_Loader::pathFor($class,$resource,$this->ext);
+            if($path !== false) {
+                $key = $path;
+                if ($usage->isVirtual) $key .= $path . '::' . $usage->componentClass;
+                if (!isset($this->list[$key])){
+                    $this->list[$key] = (object)array(
+                        'type' => self::LOCAL_RESOURCE,
+                        'path' => $path,
+                        'usage' => $usage
+                    );
+                    $this->invalidate();
                 }
             }
         }

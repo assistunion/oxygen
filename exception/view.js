@@ -1,4 +1,4 @@
-$('.oxygen-exception').each(function(){
+$(componentClass).each(function(){
 	var $exception = $(this);
 	$exception.find('table.trace tr').each(function(){
 		var $tr = $(this);

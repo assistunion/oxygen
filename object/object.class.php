@@ -6,6 +6,7 @@
 
         protected $scope = null;
         protected $arg = null;
+        protected $stack = array();
 
         public function __construct() {
             $this->scope = Oxygen_Scope::root();
@@ -13,13 +14,37 @@
             $this->put = new Oxygen_Putter($this);
         }
 
+        public static function componentClassFor($class,$resource) {
+            return 'css-' . md5($class . '-' . $resource);
+        }
+
+        public function getComponentClass() {
+            if(($count = count($this->stack)) == 0) {
+                $this->throwException('getComponentClass() call is valid only within template code');
+            } else {
+                $usage = $this->stack[$count-1];
+                $usage->isVirtual = true;
+                return $usage->componentClass;
+            }
+        }
+
         public function executeResource($path,$resource,$args) {
             $class = get_class($this);
             $scope = $this->getScope();
-            $scope->less->add($class,$resource);
-            $scope->css->add($class,$resource);
-            $scope->js->add($class,$resource);
-            include($path);
+            array_push($this->stack,(object)array(
+                'componentClass'=>Oxygen_Object::componentClassFor($class,$resource),
+                'isVirtual'=>false
+            ));
+            try {
+                include($path);
+            } catch(Exception $e) {
+                array_pop($this->stack);
+                throw $e;
+            }
+            $usage = array_pop($this->stack);
+            $scope->less->add($class,$resource,$usage);
+            $scope->css->add($class,$resource,$usage);
+            $scope->js->add($class,$resource,$usage);
         }
 
         public function __toString() {
@@ -34,6 +59,11 @@
             }
         }
 
+        public function getAssetClass() {
+            $class = get_class($this);
+
+        }
+
         public function getScope() {
             return $this->scope;
         }
@@ -45,7 +75,7 @@
             $this->arg = $arg;
             $this->scope = $scope;
         }
-        
+
     }
 
 ?>
