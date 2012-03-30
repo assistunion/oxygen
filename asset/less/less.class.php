@@ -26,7 +26,7 @@
 		}
 
 		public function resource($parsed) {
-			die(print_r($parsed,true));
+			//die(print_r($parsed,true));
 		}
 
 		public function processOne($asset) {
