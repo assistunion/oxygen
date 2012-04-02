@@ -7,8 +7,16 @@
 
 		private $temp_path = '';
 
+
+        public function __construct($temp_path = false) {
+            parent::__construct();
+            $this->temp_path = $temp_path;
+        }
+
 		public function __complete() {
-			$this->temp_path = $this->scope->temp_path;
+            if($this->temp_path === false) {
+                $this->temp_path = $this->scope->temp_path;
+            }
 		}
 
 		public function getPath($key) {
