@@ -5,15 +5,15 @@
 	{
 
 		const TYPES_REGEXP = '/^(?:(int)|(str)|\/([^\/]*(?:\\\\\/[^\/]*)*)\/)$/';
-		const PARAM_REGEXP = '/{(@?[0-9A-Za-z_]+):([^{}]+)}/';
+		const PARAM_REGEXP = '/{([0-9A-Za-z_]+):([^{}]+)}/';
 
 		const PARAM_GUARD_REPLACE = '#\\1#';
-		const PARAM_GUARD_REGEXP  = '/#(@?[0-9A-Za-z_]+)#/e';
+		const PARAM_GUARD_REGEXP  = '/#([0-9A-Za-z_]+)#/e';
 
 		const INT_REGEXP_BARE = '[0-9]+';
 		const STR_REGEXP_BARE = '[^/]+';
 
-		const ARG_PREFIX = '@';
+		const PARAM_EXTRACT_REGEXP = '/^_([0-9]+)_([0-9A-Za-z_]+)$/';
 
 		const SINGLE     = 0;
 		const COLLECTION = 1;
@@ -27,14 +27,19 @@
 		private $logicalChild  = null;
 		private $visualParent  = null;
 		private $logicalParent = null;
-		private $model         = null;
 		private $configured    = false;
 		private $children      = array();
 		private $routes        = array();
+		private $routeIdx      = array();
 		private $routingRegexp = '';
 
-		public function __construct($model){
+		protected $model         = null;
+		protected $parent        = null;
+
+		public function __construct($model = null, $parent = null){
+			parent::__construct();
 			$this->model = $model;
+			$this->parent = $parent;
 		}
 
 		public function routeExists($route){
@@ -44,8 +49,16 @@
 		public function routeGet($route){
 			$this->ensureConfigured();
 			echo $this->routingRegexp;
-			preg_match($this->routingRegexp,$route,$m);
-			return $m;
+			preg_match($this->routingRegexp,$route,$match);
+			$params = array();
+			$route = '';
+			foreach($match as $name => $value) {
+				if($value !== '' && preg_match(self::PARAM_EXTRACT_REGEXP, $name, $m)) {
+					$route = $this->routes[$m[1]];
+					$params[$m[2]] = $value;
+				}
+			}
+			return $route;
 		}
 
 		public function offsetExists($route) {
@@ -66,7 +79,7 @@
 
 		}
 
-		public function offsetSet($offset, $childDef) {
+		public function offsetSet($offset, $value) {
 			$this->throwException('Please refer to user manual how to configure controllers');
 		}
 
@@ -107,16 +120,13 @@
 		}
 
 
-		public function compileRoute($route, $class = 'Oxygen_Controller'){
-			$args = call_user_func(array($class,'getArgsRegexp'));
-			$route = trim($route,'/') . $args;
-			$type = self::SINGLE;
+		public function compileRoute($idx, $route){
+			$route = trim($route,'/');
 			if(0 < preg_match_all(self::PARAM_REGEXP, $route, $match)){
 				$names = $match[1];
 				$types = $match[2];
 				$params = array();
 				foreach($names as $i => $name){
-					if($name{0} != self::ARG_PREFIX) $type = self::COLLECTION;
 					if(isset($params[$name])) {
 						$this->throwException(self::ROUTE_PARAM_REDEFINED);
 					} else {
@@ -125,17 +135,16 @@
 				}
 				$compiled = preg_replace(self::PARAM_REGEXP,self::PARAM_GUARD_REPLACE, $route);
 				$compiled = preg_quote($compiled,'/');
-				$compiled = preg_replace(self::PARAM_GUARD_REGEXP,"'(?P<\\1>'.\$params[\\1].')'", $compiled);
-				return array($type,$compiled);
+				$compiled = preg_replace(self::PARAM_GUARD_REGEXP,"'(?P<_{$idx}_\\1>'.\$params['\\1'].')'", $compiled);
+				return array(self::COLLECTION,$compiled);
 			} else {
-				return array($type,preg_quote($route));
+				return array(self::SINGLE,preg_quote($route,'/'));
 			}
 		}
 
 		private function postConfigure() {
 			$re = '';
 			foreach($this->routes as $route){
-				print_r($route);
 				if ($re != '') $re .= '|';
 				$re .= '(' . $route->regexp . ')';
 			}
@@ -158,8 +167,9 @@
 		public function add($class, $route, $model, $iterable) {
 			if(!$this->configured) {
 				$route = trim($route,'/');
-				list($type,$regexp) = $this->compileRoute($route, $class);
-				$this->routes[] = (object)array(
+				$idx = count($this->routes);
+				list($type,$regexp) = $this->compileRoute($idx, $route, $class);
+				$this->routes[$idx] = (object)array(
 					'class'    => $class,
 					'type'     => $type,
 					'regexp'   => $regexp,
@@ -167,6 +177,7 @@
 					'model'    => $model,
 					'iterable' => $iterable
 				);
+				$this->routesIdx[$route] = $idx;
 			} else {
 				$this->throwException(self::CONTROLLER_ALREADY_CONFIGURED);
 			}
