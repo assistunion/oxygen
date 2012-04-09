@@ -21,18 +21,16 @@
             parent::__construct();
             $this->ext = $ext;
         }
-        
+
         public function addRemote($url) {
             if(isset($this->list[$url])) return;
             $this->list[$url] = (object)array(
-                'type' => self::REMOTE_RESOURCE,
-                'path'  => $url,
-                'usage' => (object)array(
-                    'isVirtual' => false,
-                    'componentClass' => false
-                )
+                'type'      => self::REMOTE_RESOURCE,
+                'path'      => $url,
+                'component' => false,
+                'class'     => false,
+                'name'      => false
             );
-            $this->invalidate();
             $this->invalidate();
         }
 
@@ -99,19 +97,21 @@
             $this->compiled = false;
         }
 
-        public function add($class,$resource,$usage) {
-            $key = $class . '::' . $resource;
+        public function add($call, $key = false) {
+            list($class, $name, $component) = $call;
+            if($key === false) $key = implode('::', $call);
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = Oxygen_Loader::pathFor($class,$resource,$this->ext);
+            $path = Oxygen_Loader::pathFor($class,$name,$this->ext);
             if($path !== false) {
-                $key = $path;
-                if ($usage->isVirtual) $key .= $path . '::' . $usage->componentClass;
+                $key = $path . '::' . $component;
                 if (!isset($this->list[$key])){
                     $this->list[$key] = (object)array(
-                        'type' => self::LOCAL_RESOURCE,
-                        'path' => $path,
-                        'usage' => $usage
+                        'type'      => self::LOCAL_RESOURCE,
+                        'path'      => $path,
+                        'class'     => $class,
+                        'name'      => $name,
+                        'component' => $component
                     );
                     $this->invalidate();
                 }

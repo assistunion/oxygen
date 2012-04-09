@@ -4,19 +4,10 @@
 		implements ArrayAccess, IteratorAggregate, Countable
 	{
 
-		const TYPES_REGEXP = '/^(?:(int)|(str)|\/([^\/]*(?:\\\\\/[^\/]*)*)\/)$/';
-		const PARAM_REGEXP = '/{([0-9A-Za-z_]+):([^{}]+)}/';
+        const PARAM_EXTRACT_REGEXP = '/^_([0-9]+)_([0-9A-Za-z_]+)$/';
 
-		const PARAM_GUARD_REPLACE = '#\\1#';
-		const PARAM_GUARD_REGEXP  = '/#([0-9A-Za-z_]+)#/e';
-
-		const INT_REGEXP_BARE = '[0-9]+';
-		const STR_REGEXP_BARE = '[^/]+';
-
-		const PARAM_EXTRACT_REGEXP = '/^_([0-9]+)_([0-9A-Za-z_]+)$/';
-
-		const SINGLE     = 0;
-		const COLLECTION = 1;
+		const ROUTING_TEMPLATE = '/^(?:{0})(?P<{1}>.*)$/';
+		const ROUTING_REST = '__';
 
 		const INVALID_CLASS_RETRIEVER       = 'Invalid class retriever';
 		const ROUTE_PARAM_REDEFINED         = 'Route param redefined';
@@ -30,35 +21,48 @@
 		private $configured    = false;
 		private $children      = array();
 		private $routes        = array();
-		private $routeIdx      = array();
+		private $index         = array();
 		private $routingRegexp = '';
 
 		protected $model         = null;
 		protected $parent        = null;
 
-		public function __construct($model = null, $parent = null){
+		public function __construct($model = null, $arguments = array()){
 			parent::__construct();
 			$this->model = $model;
 			$this->parent = $parent;
 		}
 
-		public function routeExists($route){
-			$this->ensureConfigured();
+		public function __depend($scope, $arg){
+			$this->scope = $scope->newScope();
+			$this->scope->controller = $this;
 		}
 
-		public function routeGet($route){
+
+		public function routeExists($route){
 			$this->ensureConfigured();
-			echo $this->routingRegexp;
-			preg_match($this->routingRegexp,$route,$match);
-			$params = array();
-			$route = '';
-			foreach($match as $name => $value) {
-				if($value !== '' && preg_match(self::PARAM_EXTRACT_REGEXP, $name, $m)) {
-					$route = $this->routes[$m[1]];
-					$params[$m[2]] = $value;
+			preg_match($this->routing, $route, $match);
+			$rest = $match[self::REST_NAME];
+			return $rest != $route;
+		}
+
+		public function evalRoute($route){
+			$this->ensureConfigured();
+			preg_match($this->routing, $route, $match);
+			$rest = $match[self::REST_NAME];
+			if ($rest == $route) {
+				return $this->routeMissing($route);
+			} else {
+				$params = array();
+				$route = null;
+				foreach($match as $name => $value) {
+					if($value !== '' && preg_match(self::PARAM_EXTRACT_REGEXP, $name, $m)) {
+						$route = $this->routes[$m[1]];
+						$params[$m[2]] = $value;
+					}
 				}
+				$next = $route->get($params);
 			}
-			return $route;
 		}
 
 		public function offsetExists($route) {
@@ -93,63 +97,17 @@
 		public function childMissing($route) {
 		}
 
-		private function getClassFor($class,$model){
-			if(is_array($class)){
-				if(is_callable($class)) return call_user_func($class,$model);
-				else $this->throwException(self::INVALID_CLASS_RETRIEVER);
-			} elseif(is_string($class)) {
-				return $class;
-			} elseif(is_callable($class)) {
-				// for PHP 5.3+
-				return call_user_func($class,$model);
-			} else {
-				$this->throwException(self::INVALID_CLASS_RETRIEVER);
-			}
-		}
-
-		private function getRegexpFor ($type){
-			if(preg_match(self::TYPES_REGEXP, $type,$match)){
-				switch (count($match)) {
-					case 2: return self::INT_REGEXP_BARE;
-					case 3: return self::STR_REGEXP_BARE;
-					case 4: return $match[3];
-				}
-			} else {
-				$this->throwException(self::INVALID_PARAM_TYPE);
-			}
-		}
-
-
-		public function compileRoute($idx, $route){
-			$route = trim($route,'/');
-			if(0 < preg_match_all(self::PARAM_REGEXP, $route, $match)){
-				$names = $match[1];
-				$types = $match[2];
-				$params = array();
-				foreach($names as $i => $name){
-					if(isset($params[$name])) {
-						$this->throwException(self::ROUTE_PARAM_REDEFINED);
-					} else {
-						$params[$name] = self::getRegexpFor($types[$i]);
-					}
-				}
-				$compiled = preg_replace(self::PARAM_REGEXP,self::PARAM_GUARD_REPLACE, $route);
-				$compiled = preg_quote($compiled,'/');
-				$compiled = preg_replace(self::PARAM_GUARD_REGEXP,"'(?P<_{$idx}_\\1>'.\$params['\\1'].')'", $compiled);
-				return array(self::COLLECTION,$compiled);
-			} else {
-				return array(self::SINGLE,preg_quote($route,'/'));
-			}
-		}
-
 		private function postConfigure() {
-			$re = '';
+			$regexp = '';
 			foreach($this->routes as $route){
-				if ($re != '') $re .= '|';
-				$re .= '(' . $route->regexp . ')';
+				if ($regexp != '') $regexp .= '|';
+				$regexp .= '(' . $route->regexp . ')';
 			}
-			$re = '/^(?:' . $re . ')(?P<__>.*)$/';
-			$this->routingRegexp = $re;
+			$this->routing = Oxygen_Utils_Text::format(
+				self::ROUTING_REGEXP_TEMPLATE,
+				$regexp,
+				self::REST_NAME
+			);
 			$this->configured = true;
 		}
 
@@ -160,24 +118,13 @@
 			}
 		}
 
-		public static function getArgsRegexp(){
-			return '';
-		}
-
-		public function add($class, $route, $model, $iterable) {
+		public function add($class, $route, $model) {
 			if(!$this->configured) {
-				$route = trim($route,'/');
-				$idx = count($this->routes);
-				list($type,$regexp) = $this->compileRoute($idx, $route, $class);
-				$this->routes[$idx] = (object)array(
-					'class'    => $class,
-					'type'     => $type,
-					'regexp'   => $regexp,
-					'route'    => $route,
-					'model'    => $model,
-					'iterable' => $iterable
+				$index = count($this->roures);
+				$this->routes[] = $this->scope->Oxygen_Route(
+					$index,	$class,	$route,	$model
 				);
-				$this->routesIdx[$route] = $idx;
+				$this->index[$route] = $index;
 			} else {
 				$this->throwException(self::CONTROLLER_ALREADY_CONFIGURED);
 			}
