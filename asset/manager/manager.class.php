@@ -5,8 +5,8 @@
         const ASSET_REDEFINED = 'Asset {0} is already defined';
         const ASSET_UNDEFINED = 'Asset {0} is undefined';
 
-        private assets = array();
-        private added = array();
+        private $assets = array();
+        private $added = array();
 
         public function register($name, $class){
             $this->__assert(!isset($this->assets[$name]), self::ASSET_REDEFINED, $name);
@@ -24,7 +24,7 @@
 
         public function __get($name){
             $this->__assert(isset($this->assets[$name]), self::ASSET_UNDEFINED, $name);
-            return $this->
+            return $this->assets[$name];
         }
     }
 

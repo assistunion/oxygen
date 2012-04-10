@@ -26,14 +26,15 @@
         }
 
         public function register($name, $class) {
-            if($name !== self::DEFAULT_FACTORY) {
-                $this->__assertFreshName($name);
-                return $this->impl[$name] = $this->new_Oxygen_Factory_Class($class);
-            } else {
+            $this->__assertFreshName($name);
+            if($name === self::DEFAULT_FACTORY) {
+                // Manually registering class factory to prevent infinite recursion
                 $factory = new $class($class);
                 $factory->__depend($this);
                 $factory->__complete();
                 return $this->impl[$name] = $factory;
+            } else {
+                return $this->impl[$name] = $this->new_Oxygen_Factory_Class($class);
             }
         }
 
@@ -52,10 +53,6 @@
             }
         }
 
-        public function __call($name,$args) {
-            return $this->resolve($name)->getInstance();
-        }
-
         public function has($name, $recursive = true) {
             if(isset($this->impl[$name])) {
                 return true;
@@ -69,21 +66,8 @@
         public function __get($name) {
             return $this->resolve($name)->getDefinition();
         }
-        public function __set($name,$value) {
+        public function __set($name, $value) {
             $this->instance($name, $value);
-        }
-
-
-        public function query($sql, $params = array(), $wrapper = Oxygen_SQL::STDCLASS) {
-            return $this->db->run($sql, $params, $wrapper, $this);
-        }
-
-        public function rawQuery($sql) {
-            return $this->db->raw($sql);
-        }
-
-        public function newScope() {
-            return $this->Oxygen_Scope();
         }
 
         public static function root(){
@@ -97,12 +81,10 @@
         }
 
         public static function __class_construct(){
-           $scope = new Oxygen_Scope();
-           self::$root = $scope;
-           $scope->load(self::DEFAULT_FACTORY);
-           $scope->register(self::DEFAULT_FACTORY, self::DEFAULT_FACTORY);
-           //$scope->register('Exception','Oxygen_Exception');
-           $scope->assets = $scope->Oxygen_Asset_Manager();
+           $scope = self::$root = new Oxygen_Scope();
+           $scope->register('Exception','Oxygen_Exception');
+           $scope->register('Scope','Oxygen_Scope');
+           $scope->assets = $scope->new_Oxygen_Asset_Manager();
         }
 
     }

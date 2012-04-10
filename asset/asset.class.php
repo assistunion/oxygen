@@ -18,7 +18,6 @@
         const UNKNOWN_ASSET_TYPE = 'Unknown asset type';
 
         public function __construct($ext) {
-            parent::__construct();
             $this->ext = $ext;
         }
 
@@ -102,7 +101,7 @@
             if($key === false) $key = implode('::', $call);
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = Oxygen_Loader::pathFor($class,$name,$this->ext);
+            $path = Oxygen_Loader::pathFor($class, $name . $this->ext);
             if($path !== false) {
                 $key = $path . '::' . $component;
                 if (!isset($this->list[$key])){

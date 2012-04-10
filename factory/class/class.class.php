@@ -10,13 +10,34 @@
 
         const DEPENDENCY_METHOD = '__depend';
         const COMPLETION_METHOD = '__complete';
-        const CONSTRUCTOR       = '__construct';
+
+        const ARGUMENTS_ARE_NOT_ACCEPTABLE = 'Arguments are not acceptable';
+
+        private static function hasPublicConstructor($class) {
+            try {
+                $m = new ReflectionMethod($class, $class);
+             if ($m->isPublic()) {
+                 return true;
+             }
+            }
+            catch (ReflectionException $e) {
+            }
+            try {
+             $m = new ReflectionMethod($class,'__construct');
+             if ($m->isPublic()) {
+                 return true;
+             }
+            }
+            catch (ReflectionException $e) {
+            }
+            return false;
+        }
+
 
         public function __complete() {
             $class           = $this->getDefinition();
             $ref             = $this->reflector = new ReflectionClass($class);
-            $this->construct = $ref->hasMethod($class)
-                            || $ref->hasMethod(self::CONSTRUCTOR);
+            $this->construct = self::hasPublicConstructor($class);
 
             if ($ref->isSubclassOf('Oxygen_Object')
             || $ref->isSubclassOf('Oxygen_Exception')){
@@ -28,19 +49,20 @@
 
         public function getInstance($args = array(), $scope = null) {
             if($this->construct) {
-                $instance = $this->class->newInstanceArgs($args);
+                $instance = $this->reflector->newInstanceArgs($args);
             } else {
                 $this->__assert(
                     count($args) == 0,
-                    Oxygen_Factory::ARGUMENTS_ARE_NOT_ACCEPTABLE
+                    self::ARGUMENTS_ARE_NOT_ACCEPTABLE
                 );
-                $instance = $this->class->newInstance();
+                $instance = $this->reflector->newInstance();
             }
             if($this->oxygen) {
                 if($scope === null) $scope = $this->getScope();
                 if($this->depend) $instance->{self::DEPENDENCY_METHOD}($scope);
                 if($this->complete) $instance->{self::COMPLETION_METHOD}();
             }
+            return $instance;
         }
 
     }

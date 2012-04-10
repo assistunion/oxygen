@@ -6,6 +6,7 @@
         const ASSERTION_FAILED = 'Assertion failed';
 
         const CALL_REGEXP = '/^(parent_)?(get_|put_|throw_|new_)(.*)$/';
+        const UNKNOWN_METHOD = 'Unknown method {0}->{1}';
 
         const CLAZZ     = 0;
         const RESOURCE  = 1;
@@ -15,21 +16,25 @@
         private $stack = array();
 
         public function __call($method, $args) {
-            if(preg_match(self::RESOURCE_REGEXP, $method, $match)){
+            if(preg_match(self::CALL_REGEXP, $method, $match)){
                 $class = get_class($this);
                 if ($match[1] !== '') $class = get_parent_class($this);
-                $this->{$match[2]}($match[3],$args);
+                return $this->{$match[2]}($match[3],$args);
             } else {
-                $this->throw_Exception(self::UNKNOWN_METHOD,$method);
+                $this->throw_Exception(
+                    self::UNKNOWN_METHOD,
+                    get_class($this),
+                    $method
+                );
             }
         }
 
-        public final function new_($class, $args, $owner) {
-            return $this->getScope()->$class($args);
+        public final function new_($class, $args = array()) {
+            return $this->getScope()->resolve($class)->getInstance($args);
         }
 
         public final function throw_($class, $args) {
-            throw $this->getScope()->$class($args);
+            throw $this->new_($class, $args);
         }
 
         public final function get_($method, $args = array(), $class = false) {
@@ -53,7 +58,10 @@
             $call = array($class, $name, false);
             array_push($this->stack, $call);
             try {
-                include Oxygen_Loader::pathFor($class, $name);
+                include Oxygen_Loader::pathFor(
+                    $class,
+                    $name . Oxygen_Loader::TEMPLATE_EXTENDSION
+                );
                 $ex = null;
             } catch(Exception $e){
                 $ex = $e;
@@ -95,7 +103,7 @@
         public final function getScope() {
             return ($this->scope !== null)
                 ? $this->scope
-                : Oxygen_Scope::getRootScope()
+                : Oxygen_Scope::root()
             ;
         }
 

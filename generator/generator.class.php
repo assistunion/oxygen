@@ -21,7 +21,7 @@
 
         public function generate() {
             $paths = $this->collectPaths(Oxygen_Loader::CLASS_PATH . DIRECTORY_SEPARATOR);
-            $tpltime = filemtime(Oxygen_Loader::pathFor('Oxygen_Meta','model_base'));
+            $tpltime = filemtime(Oxygen_Loader::pathFor('Oxygen_Meta','model_base.php'));
             foreach($paths as $path) {
                 try {
                     $class = Oxygen_Loader::classFor(dirname($path));
@@ -36,12 +36,12 @@
             }
             foreach($this->models as $model) {
                 $model_path = Oxygen_Loader::pathFor(
-                    $model->getModelName(),false,false,false
+                    $model->getModelName(),false,false
                 );
                 $model_base_path = Oxygen_Loader::pathFor(
-                    $model->getModelBaseName(),false,false,false
+                    $model->getModelBaseName(),false,false
                 );
-                if(!file_exists($model_base_path) 
+                if(!file_exists($model_base_path)
                   || filemtime($model_base_path) < $model->time
                 ) {
                     $f = fopen($model_base_path,'w');
