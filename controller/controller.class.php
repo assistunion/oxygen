@@ -29,11 +29,11 @@
 
 		public function __construct($model = null, $arguments = array()){
 			$this->model = $model;
-			$this->parent = $parent;
 		}
 
-		public function __depend($scope, $arg){
-			$this->scope = $scope->newScope();
+		public function __depend($scope){
+			$this->parent = $scope->controller;
+			$this->scope = $scope->new_Scope();
 			$this->scope->controller = $this;
 		}
 

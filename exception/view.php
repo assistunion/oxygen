@@ -1,8 +1,8 @@
 <div class="<?=$this->getComponentClass()?>">
 <h1>Exception: <?=$this->getName()?></h1>
-<?$this->put->details()?>
-<?$this->put->stack_trace()?>
+<?$this->put_details()?>
+<?$this->put_stack_trace()?>
 </div>
 <?if($this->previous):?>
-<?$this->previous->put->view()?>
+<?$this->previous->put_view()?>
 <?endif?>

@@ -7,7 +7,7 @@
         $less = $assets->less->compile();
         $js   = $assets->js->compile();
     } catch (Exception $ex) {
-        $body = Oxygen_Exception::wrap($ex)->get_view();
+        $body = $this->scope->wrapException($ex)->get_view();
     }
 ?>
 <head>

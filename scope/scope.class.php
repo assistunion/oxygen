@@ -19,7 +19,6 @@
 
         public function callable($name, $callable) {
             $this->__assertFreshName($name);
-            $this->ensureFreshName($name);
             return $this->entries[$name] = $this->new_Oxygen_Factory_Callable($callable);
         }
 
@@ -67,6 +66,16 @@
         public function __set($name, $value) {
             $this->instance($name, $value);
         }
+
+        // Wraps given $exception into Oxygen_Exception_Wrapper
+        // unless $exception is instance of Oxygen_Excpeion itself
+        public function wrapException($exception) {
+            if ($exception instanceof Oxygen_Excpeion) {
+                return $exception;
+            } else {
+                return $this->new_Oxygen_Exception_Wrapper($exception);
+            }
+        }        
 
         public static function newRoot($classRoot) {
             $scope = new Oxygen_Scope();

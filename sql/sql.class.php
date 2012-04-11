@@ -46,12 +46,12 @@
             if ($scope === false) $scope = $this->scope;
             if($text === false) {
                 if(!$this->link) {
-                    throw $scope->Oxygen_SQL_Exception(mysql_error());
+                    $scope->throw_Oxygen_SQL_Exception(mysql_error());
                 } else {
-                    throw $scope->Oxygen_SQL_Exception(mysql_error($this->link));
+                    $scope->throw_Oxygen_SQL_Exception(mysql_error($this->link));
                 }
             } else {
-                throw $scope->Oxygen_SQL_Exception($text);
+                throw $scope->throw_Oxygen_SQL_Exception($text);
             }
         }
 

@@ -9,16 +9,6 @@
             parent::__construct($message, $code);
             $this->previous = $previous; //TODO: See above.
         }
-
-        // Wraps given $exception into Oxygen_Exception_Wrapper
-        // unless $exception is instance of Oxygen_Excpeion itself
-        public static function wrap($exception) {
-            if ($exception instanceof Oxygen_Excpeion) {
-                return $exception;
-            } else {
-                return Oxygen_Scope::root()->Oxygen_Exception_Wrapper($exception);
-            }
-        }
         
         public function getWrapTrace() {
             return $this->getTrace();
@@ -67,7 +57,7 @@
             throw $this->new_($class, $args);
         }
 
-        public final function get_($method, $args = array(), $class = false) {
+        public final function get_($name, $args = array(), $class = false) {
             ob_start();
             try {
                 $this->put_($name, $args, $class);
