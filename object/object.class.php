@@ -12,7 +12,7 @@
         const RESOURCE  = 1;
         const COMPONENT = 2;
 
-        private $scope = null;
+        public $scope = null;
         private $stack = array();
 
         public function __call($method, $args) {
@@ -30,17 +30,17 @@
         }
 
         public final function new_($class, $args = array()) {
-            return $this->getScope()->resolve($class)->getInstance($args);
+            return $this->scope->resolve($class)->getInstance($args);
         }
 
         public final function throw_($class, $args) {
             throw $this->new_($class, $args);
         }
 
-        public final function get_($method, $args = array(), $class = false) {
+        public final function get_($name, $args = array(), $class = false) {
             ob_start();
             try {
-                $this->put($name, $args, $class);
+                $this->put_($name, $args, $class);
                 $ex = null;
             } catch(Exception $e) {
                 $ex = $e;
@@ -56,11 +56,13 @@
         public final function put_($name, $args = array(), $class = false) {
             $class = ($class === false) ? get_class($this) : $class;
             $call = array($class, $name, false);
+            $scope = $this->scope;
+            $assets = $scope->assets;
             array_push($this->stack, $call);
             try {
-                include Oxygen_Loader::pathFor(
+                include $scope->loader->pathFor(
                     $class,
-                    $name . Oxygen_Loader::TEMPLATE_EXTENDSION
+                    $name . Oxygen_Loader::TEMPLATE_EXTENSION
                 );
                 $ex = null;
             } catch(Exception $e){
@@ -70,7 +72,7 @@
                 array_pop($this->stack);
                 throw $ex;
             } else {
-                $this->getScope()->assets->add(array_pop($this->stack));
+                $assets->add(array_pop($this->stack));
             }
         }
 
@@ -96,15 +98,7 @@
         }
 
         public function __toString() {
-            return Oxygen_Utils_Text::format(self::TO_STRING_DEFAULT, get_class($this));
-        }
-
-
-        public final function getScope() {
-            return ($this->scope !== null)
-                ? $this->scope
-                : Oxygen_Scope::root()
-            ;
+            return Oxygen_Utils_Text::format(self::DEFAULT_TO_STRING, get_class($this));
         }
 
         public final function __assert(
@@ -112,7 +106,7 @@
             $message = false,
             $arg0 = '', $arg1 = '', $arg2 = '', $arg3 = '', $arg4 = ''
         ) {
-            if ($condition !== true) {
+            if (!$condition) {
                 $this->throw_Exception(
                     Oxygen_Utils_Text::format(
                         ($message === false ? $message : self::ASSERTION_FAILED),

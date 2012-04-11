@@ -1,3 +1,3 @@
 <script language="javascript" type="text/javascript">
-<?=$this->getScope()->cache[$this->compile()]?>
+<?=$this->scope->cache[$this->compile()]?>
 </script>

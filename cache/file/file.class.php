@@ -9,7 +9,6 @@
 
 
         public function __construct($temp_path = false) {
-            parent::__construct();
             $this->temp_path = $temp_path;
         }
 

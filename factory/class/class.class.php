@@ -58,7 +58,7 @@
                 $instance = $this->reflector->newInstance();
             }
             if($this->oxygen) {
-                if($scope === null) $scope = $this->getScope();
+                if($scope === null) $scope = $this->scope;
                 if($this->depend) $instance->{self::DEPENDENCY_METHOD}($scope);
                 if($this->complete) $instance->{self::COMPLETION_METHOD}();
             }

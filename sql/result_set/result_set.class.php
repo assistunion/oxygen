@@ -8,7 +8,6 @@
         private $count   = self::COUNT_IS_NOT_KNOWN;
 
         public function __construct($sql,$wrapper) {
-            parent::__construct();
             $this->wrapper = $wrapper;
             $this->sql = $sql;
         }

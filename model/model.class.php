@@ -8,16 +8,15 @@
         private $original = array();
         private $current = array();
         private $new = false;
-        
+
         public function getDefaults() {
             return array();
         }
-        
+
         public function __submit() {
         }
 
         public function __construct($original = false) {
-            parent::__construct();
             if($original === false) {
                 $new = true;
                 $original = array();
@@ -43,7 +42,7 @@
         }
 
         public function offsetUnset($data) {
-            
+
             if(is_string($data)) {
                 unset($this->current[$data]);
             } else if(is_array($data)) {

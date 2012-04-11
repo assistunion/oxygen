@@ -1,3 +1,3 @@
 <style>
-<?=$this->getScope()->cache[$this->compile()]?>
+<?=$this->scope->cache[$this->compile()]?>
 </style>

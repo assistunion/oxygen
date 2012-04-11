@@ -8,7 +8,6 @@
         private $n = 0;
 
         public function __construct($sql, $wrapper) {
-            parent::__construct();
             $this->sql = $sql;
             $this->warpper = $wrapper;
         }

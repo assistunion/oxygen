@@ -101,7 +101,7 @@
             if($key === false) $key = implode('::', $call);
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = Oxygen_Loader::pathFor($class, $name . $this->ext);
+            $path = $this->scope->loader->pathFor($class, $name . $this->ext);
             if($path !== false) {
                 $key = $path . '::' . $component;
                 if (!isset($this->list[$key])){

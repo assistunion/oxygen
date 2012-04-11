@@ -28,7 +28,6 @@
 		protected $parent        = null;
 
 		public function __construct($model = null, $arguments = array()){
-			parent::__construct();
 			$this->model = $model;
 			$this->parent = $parent;
 		}

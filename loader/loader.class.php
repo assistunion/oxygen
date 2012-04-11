@@ -1,10 +1,7 @@
 <?
 
-    define('CLASS_PATH', dirname(dirname(dirname(__file__))));
 
-    class Oxygen_Loader {
-
-        const CLASS_PATH = CLASS_PATH;
+    class Oxygen_Loader extends Oxygen_Object {
 
         const OBJECT_CLASS    = 'Oxygen_Object';
         const EXCEPTION_CLASS = 'Oxygen_Exception';
@@ -27,85 +24,57 @@
         const CLASS_NOT_RESOLVED = 'Class is not resolved for path {0}';
         const CLASS_NOT_FOUND = 'Class {0} is not found';
         const RESOURCE_NOT_FOUND = 'Resource {0} is not found for class {1}';
-
-        private static $path_cache = array();
-        private static $scope = null;
-
-        public static function __class_construct(){
-            self::loadClass(self::SCOPE_CLASS);
-            self::$scope = Oxygen_Scope::root();
+        
+        private $classRoot = '';
+        private $path_cache = array();
+        private $loaded = array();
+        
+        public function __construct($classRoot) {
+            $this->classRoot = $classRoot;
         }
 
-        public static function new_($class, $args) {
-            return self::$scope->resolve($class)->getInstance($args);
+        public function correctCase($class) {
+            return $this->classFor(dirname($this->pathFor($class)));
+        }
+        
+        public function register() {
+            spl_autoload_register(array($this, 'loadClass'));
         }
 
-        public static function throw_($class, $args) {
-            throw self::new_($class, $args);
-        }
-
-        public static function __assert(
-            $condition,
-            $message = false,
-            $arg0 = '', $arg1 = '', $arg2 = '', $arg3 = '', $arg4 = ''
-        ) {
-            if (!$condition) {
-                self::throw_Exception(
-                    Oxygen_Utils_Text::format(
-                        ($message === false ? $message : Oxygen_Object::ASSERTION_FAILED),
-                        $arg0, $arg1, $arg2, $arg3, $arg4
-                    )
+        public function loadClass($class) {
+            if (isset($this->loaded[$class])) return;
+            if (!class_exists($class, false)) {
+                $path = $this->pathFor($class);
+                ob_start();
+                try {
+                    require_once $path;
+                    $ex = null;
+                } catch (Exception $e) {
+                    $ex = $e;
+                } /* finally */ {
+                    echo trim(ob_get_clean());
+                    if ($ex !== null) throw $ex;
+                }
+                $this->__assert(
+                    class_exists($class,false),
+                    self::CLASS_NOT_FOUND,
+                    $class
                 );
             }
-        }
-
-        public function __call($name, $args) {
-            if(preg_match(self::CALL_REGEXP, $method, $match)){
-                $method = $match[1];
-                return self::$method($match[2], $args);
-            } else {
-                self::throw_Exception(
-                    Oxygen_Object::UNKNOWN_METHOD,
-                    __CLASS__,
-                    $method
-                );
-            }
-        }
-
-        public static function correctCase($class) {
-            return self::classFor(dirname(self::pathFor($class)));
-        }
-
-        public static function loadClass($class) {
-            $path = self::pathFor($class);
-            ob_start();
-            try {
-                require_once $path;
-                $ex = null;
-            } catch (Exception $e) {
-                $ex = $e;
-            } /* finally */ {
-                echo trim(ob_get_clean());
-                if ($ex !== null) throw $ex;
-            }
-            self::__assert(
-                class_exists($class,false),
-                self::CLASS_NOT_FOUND,
-                $class
-            );
             if (method_exists($class, self::STATIC_CONSTRUCTOR)) {
-                call_user_func(array($class, self::STATIC_CONSTRUCTOR));
+                call_user_func(array($class, self::STATIC_CONSTRUCTOR), $this->scope);
             }
+            $this->loaded[$class] = true;
         }
 
-        public static function classFor($path) {
+        public function classFor($path) {
             $path = realpath($path);
-            self::__assert(
-                substr($path, 0, $len = strlen(self::CLASS_PATH)) === self::CLASS_PATH,
+            $this->__assert(
+                substr($path, 0, $len = strlen($this->classRoot)) === $this->classRoot,
                 self::CLASS_NOT_RESOLVED, $path
             );
             $parts = explode(DIRECTORY_SEPARATOR, substr($path, $len));
-            $dir = self::CLASS_PATH;
+            $dir = $this->classRoot;
             $class = '';
             foreach($parts as $part) {
                 if($class !== '') $class .= '_';
@@ -124,20 +93,22 @@
             return $class;
         }
 
-        public static function pathFor(
+        public function pathFor(
             $class,
             $resource = false,
             $required = true
         ) {
+            // Exit from get_parent_class recursion for resources (see below)
+            if ($class === false) return false;
 
             $key = $class . '::' . $resource;
 
             // return from cache if found there
-            if (isset(self::$path_cache[$key])) {
-                return self::$path_cache[$key];
+            if (isset($this->path_cache[$key])) {
+                return $this->path_cache[$key];
             }
 
-            list($dir, $name, $base) = self::parse($class);
+            list($dir, $name, $base) = $this->parse($class);
 
             // looking for a class
             if($resource === false) {
@@ -146,16 +117,16 @@
                     . $name
                     . ($base ? self::BASE_EXTENSION : self::CLASS_EXTENSION)
                 ;
-                self::__assert(
+                $this->__assert(
                     !$required || file_exists($trial_path),
                     self::CLASS_NOT_FOUND,
                     $class
                 );
-                return self::$path_cache[$key] = $trial_path;
+                return $this->path_cache[$key] = $trial_path;
             }
 
             // A bit of security
-            self::__assert(
+            $this->__assert(
                 preg_match(self::SAFE_FILENAME, $resource),
                 self::RESOURCE_NOT_FOUND,
                 $resource,
@@ -165,7 +136,7 @@
             $trial_path = $dir . DIRECTORY_SEPARATOR . $resource;
 
             if (file_exists($trial_path)) {
-                return self::$path_cache[$key] = $trial_path;
+                return $this->path_cache[$key] = $trial_path;
             }
 
             // Small inheritance hack:
@@ -176,12 +147,12 @@
                 : get_parent_class($class)
             ;
 
-            return self::$path_cache[$key] = self::pathFor(
+            return $this->path_cache[$key] = $this->pathFor(
                 $parent, $resource, $required
             );
         }
 
-        private static function parse($class) {
+        private function parse($class) {
             $len = max(0, strlen($class) - strlen(self::BASE_SUFFIX));
             $base = substr($class, $len) === self::BASE_SUFFIX;
             if ($base) $class = substr($class, 0, $len);
@@ -193,7 +164,7 @@
                 } else {
                     preg_match_all("/[A-Z][a-z0-9]+/", $part, $match);
                     $subparts = $match[0];
-                    self::__assert(
+                    $this->__assert(
                         count($subparts) > 0,
                         self::CLASS_NOT_FOUND,
                         $class
@@ -207,16 +178,9 @@
                 }
                 $path .= DIRECTORY_SEPARATOR . $last;
             }
-            $path = self::CLASS_PATH . $path;
+            $path = $this->classRoot . $path;
             return array($path, $last, $base);
         }
-
     }
-
-    function __autoload($class){
-        Oxygen_Loader::loadClass($class);
-    }
-
-
 
 ?>

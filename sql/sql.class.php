@@ -1,7 +1,7 @@
 <?
 
     class Oxygen_SQL extends Oxygen_Object {
-        
+
         const STDCLASS = 'StdClass';
         const CENSORED = '***CENSORED***';
 
@@ -13,10 +13,9 @@
         public $name = '';
 
         public function __construct($config){
-            parent::__construct();
             $this->host = $config->host;
             $this->user = $config->user;
-            $this->pass = $config->pass; //Will be wiped out after mysql_connect 
+            $this->pass = $config->pass; //Will be wiped out after mysql_connect
             $this->name = $config->name;
         }
 
@@ -28,9 +27,9 @@
             }
             mysql_query('set names utf8',$this->link);
             @mysql_select_db($this->name,$this->link) or $this->throwException();
-            
+
         }
-            
+
         public function param($match) {
             $name = $match[1];
             $type = $match[2];

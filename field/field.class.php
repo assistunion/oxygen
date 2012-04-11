@@ -20,7 +20,6 @@
         }
 
         public function __construct($owner,$name, $yaml) {
-            parent::__construct();
             $this->yaml  = $yaml;
             $this->owner = $owner;
             $this->name  = $name;
@@ -28,7 +27,7 @@
             $this->i18n  = $this->option(self::I18N, false);
         }
 
-        
+
         private function wrapAll($value) {
             if($this->i18n) {
                 $result = array();

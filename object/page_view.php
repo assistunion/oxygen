@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html>
 <?
-    $this->getScope()->js->addRemote('http://code.jquery.com/jquery-1.7.1.min.js');
+    $assets->js->addRemote('http://code.jquery.com/jquery-1.7.1.min.js');
     try {
-        $body = $this->get->view();
-        $less = $this->getScope()->less->compile();
-        $js   = $this->getScope()->js->compile();
-    } catch (Oxygen_Exception $ex) {
-        $body = $ex->get->view();
+        $body = $this->get_view();
+        $less = $assets->less->compile();
+        $js   = $assets->js->compile();
     } catch (Exception $ex) {
-        $body = $this->scope->Oxygen_Exception_Wrapper($ex)->get->view();
+        $body = Oxygen_Exception::wrap($ex)->get_view();
     }
 ?>
 <head>
-<?=$this->put->stylesheets()?>
-<?=$this->put->html5shim()?>
+<?=$this->put_stylesheets()?>
+<?=$this->put_html5shim()?>
 </head>
 <body>
 <?=$body?>
-<?=$this->put->javascripts()?>
+<?=$this->put_javascripts()?>
 </body>
 </html>
 

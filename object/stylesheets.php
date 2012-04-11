@@ -1,4 +1,4 @@
 <!-- BEGIN: Stylesheets -->
-<?$this->getScope()->css->put->view()?>
-<?$this->getScope()->less->put->view()?>
+<?$this->scope->assets->css->put_view()?>
+<?$this->scope->assets->less->put_view()?>
 <!-- END: Stylesheets -->

@@ -5,10 +5,8 @@
         const FACTORY_REDEFINED = 'Factory {0} is redefined in this scope';
         const DEFAULT_FACTORY = 'Oxygen_Factory_Class';
 
-        private $data = array();
-        private $impl = array();
+        private $entries = array();
         private $parent = null;
-        private static $root = null;
 
         public function __depend($scope){
             $this->scope = $this;
@@ -16,13 +14,13 @@
         }
 
         private function __assertFreshName($name){
-            $this->__assert(!isset($this->impl[$name]), self::FACTORY_REDEFINED, $name);
+            $this->__assert(!isset($this->entries[$name]), self::FACTORY_REDEFINED, $name);
         }
 
         public function callable($name, $callable) {
             $this->__assertFreshName($name);
             $this->ensureFreshName($name);
-            return $this->impl[$name] = $this->new_Oxygen_Factory_Callable($callable);
+            return $this->entries[$name] = $this->new_Oxygen_Factory_Callable($callable);
         }
 
         public function register($name, $class) {
@@ -32,31 +30,31 @@
                 $factory = new $class($class);
                 $factory->__depend($this);
                 $factory->__complete();
-                return $this->impl[$name] = $factory;
+                return $this->entries[$name] = $factory;
             } else {
-                return $this->impl[$name] = $this->new_Oxygen_Factory_Class($class);
+                return $this->entries[$name] = $this->new_Oxygen_Factory_Class($class);
             }
         }
 
         public function instance($name, $instance) {
             $this->__assertFreshName($name);
-            return $this->impl[$name] = $this->new_Oxygen_Factory_Instance($instance);
+            return $this->entries[$name] = $this->new_Oxygen_Factory_Instance($instance);
         }
 
         public function resolve($name) {
-            if(isset($this->impl[$name])){
-                return $this->impl[$name];
-            } else if($this->parent !== null) {
-                return $this->impl[$name] = $this->parent->resolve($name);
+            if(isset($this->entries[$name])){
+                return $this->entries[$name];
+            } else if($this->parent !== $this) {
+                return $this->entries[$name] = $this->parent->resolve($name);
             } else {
                 return $this->register($name,$name);
             }
         }
 
         public function has($name, $recursive = true) {
-            if(isset($this->impl[$name])) {
+            if(isset($this->entries[$name])) {
                 return true;
-            } else if ($recursive && $this->parent != null) {
+            } else if ($recursive && $this->parent !== $this) {
                 return $this->parent->has($name);
             } else {
                 return false;
@@ -70,18 +68,20 @@
             $this->instance($name, $value);
         }
 
-        public static function root(){
-            return self::$root;
+        public static function newRoot($classRoot) {
+            $scope = new Oxygen_Scope();
+            $scope->__depend($scope);
+            $scope->__complete();
+            $loader = new Oxygen_Loader($classRoot);
+            $loader->__depend($scope);
+            $loader->__complete();
+            $loader->register();
+            $scope->loader = $loader;
+            self::__class_construct($scope);
+            return $scope;
         }
 
-        public function load($class) {
-            if(!class_exists($class)) {
-                Oxygen_Loader::loadClass($class);
-            }
-        }
-
-        public static function __class_construct(){
-           $scope = self::$root = new Oxygen_Scope();
+        public static function __class_construct($scope){
            $scope->register('Exception','Oxygen_Exception');
            $scope->register('Scope','Oxygen_Scope');
            $scope->assets = $scope->new_Oxygen_Asset_Manager();
