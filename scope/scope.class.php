@@ -40,7 +40,7 @@
             return $this->entries[$name] = $this->new_Oxygen_Factory_Instance($instance);
         }
 
-        public function resolve($name) {
+        public function resolve($name, $autoregister = false) {
             if(isset($this->entries[$name])){
                 return $this->entries[$name];
             } else if($this->parent !== $this) {
