@@ -30,6 +30,10 @@
 		public function __construct($model = null, $arguments = array()){
 			$this->model = $model;
 		}
+        
+        public function __class_construct($scope){
+            $scope->controller = null; // Parent controller;
+        }
 
 		public function __depend($scope){
 			$this->parent = $scope->controller;
@@ -41,14 +45,14 @@
 		public function routeExists($route){
 			$this->ensureConfigured();
 			preg_match($this->routing, $route, $match);
-			$rest = $match[self::REST_NAME];
+			$rest = $match[self::ROUTING_REST];
 			return $rest != $route;
 		}
 
 		public function evalRoute($route){
 			$this->ensureConfigured();
 			preg_match($this->routing, $route, $match);
-			$rest = $match[self::REST_NAME];
+			$rest = $match[self::ROUTING_REST];
 			if ($rest == $route) {
 				return $this->routeMissing($route);
 			} else {
@@ -83,12 +87,12 @@
 		}
 
 		public function offsetSet($offset, $value) {
-			$this->throwException('Please refer to user manual how to configure controllers');
+			$this->throw_Exception('Please refer to user manual how to configure controllers');
 		}
 
 		public function offsetGet($offset) {
 			if (!$this->configured) {
-				return $this->scope->Oxygen_Controller_Configurator($offset,$this);
+				return $this->new_Oxygen_Controller_Configurator($offset,$this);
 			} else {
 			}
 		}
@@ -100,12 +104,12 @@
 			$regexp = '';
 			foreach($this->routes as $route){
 				if ($regexp != '') $regexp .= '|';
-				$regexp .= '(' . $route->regexp . ')';
+				$regexp .= '(' . $route->regex . ')';
 			}
 			$this->routing = Oxygen_Utils_Text::format(
-				self::ROUTING_REGEXP_TEMPLATE,
+				self::ROUTING_TEMPLATE,
 				$regexp,
-				self::REST_NAME
+				self::ROUTING_REST
 			);
 			$this->configured = true;
 		}
@@ -119,13 +123,13 @@
 
 		public function add($class, $route, $model) {
 			if(!$this->configured) {
-				$index = count($this->roures);
-				$this->routes[] = $this->scope->Oxygen_Route(
+				$index = count($this->routes);
+				$this->routes[] = $this->new_Oxygen_Route(
 					$index,	$class,	$route,	$model
 				);
 				$this->index[$route] = $index;
 			} else {
-				$this->throwException(self::CONTROLLER_ALREADY_CONFIGURED);
+				$this->throw_Exception(self::CONTROLLER_ALREADY_CONFIGURED);
 			}
 		}
 

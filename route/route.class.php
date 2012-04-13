@@ -27,10 +27,10 @@
             $this->route = $route;
             $this->index = $index;
             $this->model = $model;
-            $this->regex = self::compile($index,$route);
+            list($this->type, $this->regex) = $this->compile($index,$route);
         }
 
-        public static compile($index, $route){
+        public function compile($index, $route){
             $route = trim($route,'/');
             if(0 < preg_match_all(self::PARAM_REGEXP, $route, $match)){
                 $names = $match[1];
@@ -50,6 +50,10 @@
             } else {
                 return array(self::SINGLE,preg_quote($route,'/'));
             }
+        }
+
+        public function get($params){
+            return 'x';
         }
 
         private function getRegexpFor ($type){

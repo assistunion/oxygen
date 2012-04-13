@@ -1,8 +1,10 @@
 <?
 
-	require_once Oxygen_Lib::path('lessphp/lessc.inc.php');
-
 	class Oxygen_Asset_LESS extends Oxygen_Asset {
+
+		public function __class_construct($scope) {
+			$scope->lib->load('lessphp/lessc.inc.php');
+		}
 
 		private $less = null;
 
@@ -12,16 +14,20 @@
 		public function __construct() {
 			parent::__construct('.less');
 			$this->less = new lessc();
-			$this->less->registerFunction('icon',array($this,'icon'));
-			$this->less->registerFunction('virtual',array($this,'resource'));
+			$this->less->registerFunction('icon', array($this, 'icon'));
+			$this->less->registerFunction('virtual', array($this, 'resource'));
 		}
 
 		public function icon($parsed) {
-			list($type,$value) = $parsed;
-			if($type !== 'keyword') $this->throwException('Invalid icon code'); 
+			list($type, $value) = $parsed;
+			$this->__assert($type === 'keyword', 'Invalid icon code');
+			$this->__assert(preg_match("/^[a-z_]+$/", $value), 'Invalid icon code');
+			$relative = 'silk-icons/icons/' . $value . '.png';
+			$path = $this->scope->lib->path($relative);
+			$this->__assert(file_exists($path),'Icon not found');
 			return Oxygen_Utils_Text::format(
 				self::CSS_URL,
-				Oxygen_Utils_Icon::get($value)
+				$this->scope->lib->url($relative)
 			);
 		}
 
@@ -31,10 +37,10 @@
 
 		public function processOne($asset) {
 			$source = parent::processOne($asset);
-			if($asset->usage->isVirtual){
+			if($asset->component !== false){
 				return Oxygen_Utils_Text::format(
 					self::VIRTUAL_WRAPPER,
-					$asset->usage->componentClass,
+					$asset->component,
 					$source
 				);
 			} else {

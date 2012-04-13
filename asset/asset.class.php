@@ -53,7 +53,7 @@
         }
 
         protected function getCachedUrlContent($url) {
-            $cache = $this->getScope()->cache;
+            $cache = $this->scope->cache;
             $key = Oxygen_Utils_Text::format(self::REMOTE_KEY_TEMPLATE,$url);
             if(!isset($cache[$key])){
                 return $cache[$key] = file_get_contents($url);

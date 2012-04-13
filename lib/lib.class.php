@@ -1,23 +1,24 @@
 <?
 
-    class Oxygen_Lib {
-        private static $dir = '';
-        public static function path($path) {
-            return  self::$dir . $path;
+    class Oxygen_Lib extends Oxygen_Object {
+
+        public function load($path) {
+            require_once $this->path($path);
         }
 
-        public static function url($path) {
-        	$document_root = str_replace('/',DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
-        	$full_path = dirname(__file__) . DIRECTORY_SEPARATOR . $path;
-        	$url = str_replace(DIRECTORY_SEPARATOR, '/', str_replace($document_root, '', $full_path));
+        public function path($path) {
+            return  $this->scope->LIB_PATH . $path;
+        }
+
+        public function url($path) {
+        	$url = str_replace($this->scope->DOCUMENT_ROOT, '', $this->path($path));
+        	$url = str_replace(DIRECTORY_SEPARATOR, '/', $url);
         	return $url;
         }
         
         public static function __class_construct($scope) {
-            self::$dir = dirname(__file__) . DIRECTORY_SEPARATOR;
+            $scope->LIB_PATH = dirname(__file__) . DIRECTORY_SEPARATOR;
         }
-        
-        
     }
 
 

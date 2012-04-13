@@ -16,17 +16,15 @@
         private $stack = array();
 
         public function __call($method, $args) {
-            if(preg_match(self::CALL_REGEXP, $method, $match)){
-                $class = get_class($this);
-                if ($match[1] !== '') $class = get_parent_class($this);
-                return $this->{$match[2]}($match[3],$args);
-            } else {
-                $this->throw_Exception(
-                    self::UNKNOWN_METHOD,
-                    get_class($this),
-                    $method
-                );
-            }
+            $this->__assert(
+                preg_match(self::CALL_REGEXP, $method, $match),
+                self::UNKNOWN_METHOD,
+                get_class($this),
+                $method
+            );
+            $class = get_class($this);
+            if ($match[1] !== '') $class = get_parent_class($this);
+            return $this->{$match[2]}($match[3],$args);
         }
 
         public final function new_($class, $args = array()) {
@@ -109,7 +107,7 @@
             if (!$condition) {
                 $this->throw_Exception(
                     Oxygen_Utils_Text::format(
-                        ($message === false ? $message : self::ASSERTION_FAILED),
+                        ($message === false ? self::ASSERTION_FAILED : $message),
                         $arg0, $arg1, $arg2, $arg3, $arg4
                     )
                 );

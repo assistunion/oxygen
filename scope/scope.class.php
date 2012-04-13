@@ -40,17 +40,14 @@
             return $this->entries[$name] = $this->new_Oxygen_Factory_Instance($instance);
         }
 
-        public function resolve($name, $autoregister = false) {
+        public function resolve($name, $autoregister = true) {
             if(isset($this->entries[$name])){
                 return $this->entries[$name];
             } else if($this->parent !== $this) {
                 return $this->entries[$name] = $this->parent->resolve($name);
             } else {
-                if ($autoregister) {
-                    return $this->register($name,$name);
-                } else {
-                    return $scope->emptyFactory;
-                }
+                $this->__assert($autoregister,'Scoped element {0} is not found', $name);
+                return $this->register($name,$name);
             }
         }
 
@@ -65,7 +62,7 @@
         }
 
         public function __get($name) {
-            return $this->resolve($name)->getDefinition();
+            return $this->resolve($name, false)->getDefinition();
         }
         public function __set($name, $value) {
             $this->instance($name, $value);
@@ -90,14 +87,18 @@
             $loader->__complete();
             $loader->register();
             $scope->loader = $loader;
+            $scope->OXYGEN_PATH = $classRoot;
+            $scope->DOCUMENT_ROOT = str_replace('/',DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
             self::__class_construct($scope);
             return $scope;
         }
 
         public static function __class_construct($scope){
-           $scope->register('Exception','Oxygen_Exception');
-           $scope->register('Scope','Oxygen_Scope');
-           $scope->assets = $scope->new_Oxygen_Asset_Manager();
+            $scope->register('Exception','Oxygen_Exception');
+            $scope->register('Scope','Oxygen_Scope');
+            $scope->null = null;
+            $scope->assets = $scope->new_Oxygen_Asset_Manager();
+            $scope->lib = $scope->new_Oxygen_Lib();
         }
 
     }

@@ -14,11 +14,11 @@
         		return $source;
         	} else {
                 return Oxygen_Utils_Text::format(
-                    $asset->usage->isVirtual 
+                    $asset->component !== false
                     ? self::JQUERY_VIRTUAL_WRAPPER
                     : self::JQUERY_WRAPPER,
                     $source,
-                    $asset->usage->componentClass
+                    $asset->component
                 );
             }        		
         }

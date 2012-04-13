@@ -1,9 +1,11 @@
 <?
-    require_once Oxygen_Lib::path('yaml-php/lib/sfYaml.php');
 
     public Oxygen_Utils_YAML {
-        public static function load($input) {
+        public function load($input) {
             return sfYaml::load($input);
+        }
+        public function __class_construct($scope) {
+        	$scope->lib->load('yaml-php/lib/sfYaml.php');
         }
     }
 
