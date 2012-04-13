@@ -46,7 +46,11 @@
             } else if($this->parent !== $this) {
                 return $this->entries[$name] = $this->parent->resolve($name);
             } else {
-                return $this->register($name,$name);
+                if ($autoregister) {
+                    return $this->register($name,$name);
+                } else {
+                    return $scope->emptyFactory;
+                }
             }
         }
 
@@ -75,7 +79,7 @@
             } else {
                 return $this->new_Oxygen_Exception_Wrapper($exception);
             }
-        }        
+        }
 
         public static function newRoot($classRoot) {
             $scope = new Oxygen_Scope();
