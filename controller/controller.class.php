@@ -1,8 +1,6 @@
 <?
 
-	class Oxygen_Controller extends Oxygen_Object
-		implements ArrayAccess, IteratorAggregate, Countable
-	{
+	abstract class Oxygen_Controller extends Oxygen_Collection {
 
         const PARAM_EXTRACT_REGEXP = '/^_([0-9]+)_([0-9A-Za-z_]+)$/';
 
@@ -30,8 +28,8 @@
 		public function __construct($model = null, $arguments = array()){
 			$this->model = $model;
 		}
-        
-        public function __class_construct($scope){
+
+        public static function __class_construct($scope){
             $scope->controller = null; // Parent controller;
         }
 
@@ -116,7 +114,8 @@
 
 		public function ensureConfigured() {
 			if(!$this->configured){
-				$this->configure();
+				$routes = $this->new_Oxygen_Controller_Routes($this);
+				$this->configure($routes);
 			    $this->postConfigure();
 			}
 		}
@@ -124,18 +123,18 @@
 		public function add($class, $route, $model) {
 			if(!$this->configured) {
 				$index = count($this->routes);
-				$this->routes[] = $this->new_Oxygen_Route(
+				$result = $this->routes[] = $this->new_Oxygen_Route(
 					$index,	$class,	$route,	$model
 				);
 				$this->index[$route] = $index;
+				return $result;
 			} else {
 				$this->throw_Exception(self::CONTROLLER_ALREADY_CONFIGURED);
 			}
 		}
 
-		public function configure() {
+		public abstract function configure($routes);
 
-		}
 	}
 
 ?>

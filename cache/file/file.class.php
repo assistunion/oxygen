@@ -2,7 +2,7 @@
 
 	class Oxygen_Cache_File extends Oxygen_Cache {
 
-		const SAFE_FILE = "/^[0-9A-Za-z_].*$/";
+		const SAFE_FILE = '/^[0-9A-Za-z_].*$/';
 		const FILE_TEMPLATE = 'oxygen-{0}.tmp';
 
 		private $temp_path = '';

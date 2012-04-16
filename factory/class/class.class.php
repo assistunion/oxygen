@@ -38,9 +38,11 @@
             $class           = $this->getDefinition();
             $ref             = $this->reflector = new ReflectionClass($class);
             $this->construct = self::hasPublicConstructor($class);
-
-            if ($ref->isSubclassOf('Oxygen_Object')
-            || $ref->isSubclassOf('Oxygen_Exception')){
+            if ($class == 'Oxygen_Object'
+             || $class == 'Oxygen_Exception'
+             || $ref->isSubclassOf('Oxygen_Object')
+             || $ref->isSubclassOf('Oxygen_Exception')
+            ) {
                 $this->oxygen   = true;
                 $this->depend   = $ref->hasMethod(self::DEPENDENCY_METHOD);
                 $this->complete = $ref->hasMethod(self::COMPLETION_METHOD);

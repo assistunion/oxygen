@@ -9,8 +9,7 @@
 		}
 		public function __call($class, $args) {
 			$model = isset($args[0])?$args[0]:null;
-			$iterable = isset($args[1])?$args[1]:null;
-			$this->controller->add($class,$this->route,$model,$iterable);
+			return $this->controller->add($class,$this->route,$model);
 		}
 	}
 

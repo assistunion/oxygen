@@ -1,6 +1,6 @@
 <?
 
-    class Oxygen_Validation_Context extends Oxygen_Object implements {
+    class Oxygen_Validation_Context extends Oxygen_Object {
         private $items = array();
 
         public function Error($owner,$message,$data = null) {

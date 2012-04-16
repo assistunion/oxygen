@@ -1,6 +1,6 @@
 <?
 
-    public Oxygen_Utils_YAML {
+    class Oxygen_Utils_YAML {
         public function load($input) {
             return sfYaml::load($input);
         }

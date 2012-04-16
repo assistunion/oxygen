@@ -2,7 +2,7 @@
 
 	class Oxygen_Asset_LESS extends Oxygen_Asset {
 
-		public function __class_construct($scope) {
+		public static function __class_construct($scope) {
 			$scope->lib->load('lessphp/lessc.inc.php');
 		}
 

@@ -7,7 +7,7 @@
         }
         public function __complete() {
         }
-        public function serialize(value)
+        
     }
 
 ?>
