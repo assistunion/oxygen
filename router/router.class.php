@@ -24,10 +24,11 @@
         private $data = null;
         private $params = array();
 
-        public function __construct($pattern, $data, $wrap = false, $unwrap = false) {
-            $this->pattern = $pattern;
-            $this->data = $data;
-            if($wrap === false) {
+        public function setWrap($wrap, $method = false) {
+            if($method !== false) {
+                $this->wrapperClass = '';
+                $this->wrap = array($wrap, $method);
+            } else if($wrap === false) {
                 $this->wrapperClass = '';
                 $this->wrap = array($this,'sameObject');
             } else if(is_string($wrap)) {
@@ -37,7 +38,14 @@
                 $this->wrapperClass = '';
                 $this->wrap = $wrap;
             }
-            if($unwrap === false) {
+            return $this;
+        }
+
+        public function setUnwrap($unwrap, $method = false) {
+            if($method !== false) {
+                $this->unwrapMethod = '';
+                $this->unwrap = array($unwrap, $method);
+            } else if($unwrap === false) {
                 $this->unwrapMethod = '';
                 $this->unwrap = array($this,'sameObject');
             } else if (is_string($unwrap)) {
@@ -47,28 +55,34 @@
                 $this->unwrapMethod = '';
                 $this->unwrap = $unwrap;
             }
+            return $this;
+        }
+
+        public function __construct($pattern, $data, $wrap = false, $unwrap = false) {
+            $this->pattern = $pattern;
+            $this->data = $data;
+            $this->setWrap($wrap);
+            $this->setUnwrap($unwrap);
         }
 
         private function &sameObject(&$obj){
             return $obj;
         }
 
-        private function &staticWrap(&$obj){
+        private function staticWrap($obj){
             return $this->new_($this->wrapperClass,array($obj));
         }
 
-        private function &staticUnwrap(&$obj){
+        private function staticUnwrap($obj){
             return $obj->{$this->unwrapMethod}();
         }
 
-        public function &wrap(&$obj){
-            $wrap = $this->wrap;
-            return $wrap($obj);
+        public function wrap(&$obj){
+            return call_user_func($this->wrap,$obj);
         }
 
-        public function &unwrap(&$obj){
-            $unwrap = $this->unwrap;
-            return $unwrap($obj);
+        public function unwrap(&$obj){
+            return call_user_func($this->unwrap,$obj);
         }
 
         private function getRegexpFor ($type){
@@ -160,7 +174,7 @@
             }
         }
 
-        public function __complete() {
+        private function compile() {
             if(0 < preg_match_all(self::PARAM_REGEXP, $this->pattern, $match)){
                 $names = $match[1];
                 $types = $match[2];
@@ -199,6 +213,11 @@
                 $data[$this->pattern] = $this->data;
                 $this->data = $data;
             }
+        }
+
+
+        public function __complete() {
+            $this->compile();
         }
     }
 

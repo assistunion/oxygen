@@ -12,6 +12,8 @@
 		const INVALID_PARAM_TYPE            = 'Invalid route parameter type';
 		const CONTROLLER_ALREADY_CONFIGURED = 'Controller is already configured';
 
+		const UNWRAP_METHOD = 'getModel';
+
 		private $visualChild   = null;
 		private $logicalChild  = null;
 		private $visualParent  = null;
@@ -39,6 +41,9 @@
 			$this->scope->controller = $this;
 		}
 
+		public function getModel() {
+			return $this->model;
+		}
 
 		public function routeExists($route){
 			$this->ensureConfigured();
@@ -89,10 +94,8 @@
 		}
 
 		public function offsetGet($offset) {
-			if (!$this->configured) {
-				return $this->new_Oxygen_Controller_Configurator($offset,$this);
-			} else {
-			}
+			$this->ensureConfigured();
+			if(isset($this->routes))
 		}
 
 		public function childMissing($route) {
@@ -112,24 +115,17 @@
 			$this->configured = true;
 		}
 
+		public function add($class, $route, $model) {
+			return $this->routes[$route] = $this->new_Oxygen_Router(
+				$route, $model, $class, self::UNWRAP_METHOD
+			);
+		}
+
 		public function ensureConfigured() {
 			if(!$this->configured){
 				$routes = $this->new_Oxygen_Controller_Routes($this);
 				$this->configure($routes);
 			    $this->postConfigure();
-			}
-		}
-
-		public function add($class, $route, $model) {
-			if(!$this->configured) {
-				$index = count($this->routes);
-				$result = $this->routes[] = $this->new_Oxygen_Route(
-					$index,	$class,	$route,	$model
-				);
-				$this->index[$route] = $index;
-				return $result;
-			} else {
-				$this->throw_Exception(self::CONTROLLER_ALREADY_CONFIGURED);
 			}
 		}
 
