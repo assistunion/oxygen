@@ -4,9 +4,13 @@
 
         const FACTORY_REDEFINED = 'Factory {0} is redefined in this scope';
         const DEFAULT_FACTORY = 'Oxygen_Factory_Class';
+        
+        const STATIC_CONSTRUCTOR = '__class_construct';
+        
 
         private $entries = array();
         private $parent = null;
+        private $introduced = array();
 
         public function __depend($scope){
             $this->scope = $this;
@@ -20,6 +24,19 @@
         public function callable($name, $callable) {
             $this->__assertFreshName($name);
             return $this->entries[$name] = $this->new_Oxygen_Factory_Callable($callable);
+        }
+        
+        public function introduce($class) {
+            if (self::isOxygenClass($class)
+            && !isset($this->introduced[$class])
+            ) {
+                $this->introduce(self::getOxygenParentClass($class));
+                $constructor = new ReflectionMethod($class, self::STATIC_CONSTRUCTOR);
+                $this->introduced[$class] = true;
+                if ($constructor->getDeclaringClass() === $class) {
+                    call_user_func(array($class, self::STATIC_CONSTRUCTOR), $this);
+                }
+            }
         }
 
         public function register($name, $class) {

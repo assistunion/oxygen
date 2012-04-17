@@ -1,6 +1,10 @@
 <?
 
     class Oxygen_Object {
+        
+        const OBJECT_CLASS    = 'Oxygen_Object';
+        const EXCEPTION_CLASS = 'Oxygen_Exception';
+        const SCOPE_CLASS     = 'Oxygen_Scope';
 
         const DEFAULT_TO_STRING = '[{0} Object]';
         const ASSERTION_FAILED = 'Assertion failed';
@@ -116,9 +120,31 @@
 
         public function __complete() {
         }
+        
+        public static function __class_construct($scope) {
+            /* Intentionally left blank. No code here */
+        }
 
         public function __depend($scope) {
             $this->scope = $scope;
+        }
+        
+        // Small inheritance hack:
+        // Let system think that EXCEPTION_CLASS
+        // is inherited from OBJECT_CLASS (not from Exception)
+        public static function getOxygenParentClass($class) {
+            return $class === self::EXCEPTION_CLASS
+                ? self::OBJECT_CLASS
+                : get_parent_class($class)
+            ;
+        }
+        
+        public static function isOxygenClass($class) {
+            return (is_subclass_of($class, self::OBJECT_CLASS)
+            || is_subclass_of($class, self::EXCEPTION_CLASS)
+            || $class === self::OBJECT_CLASS
+            || $class === self::OBJECT_CLASS
+            );
         }
 
     }

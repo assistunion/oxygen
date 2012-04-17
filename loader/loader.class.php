@@ -3,10 +3,6 @@
 
     class Oxygen_Loader extends Oxygen_Object {
 
-        const OBJECT_CLASS    = 'Oxygen_Object';
-        const EXCEPTION_CLASS = 'Oxygen_Exception';
-        const SCOPE_CLASS     = 'Oxygen_Scope';
-
         const UPPERCASE_FILE     = '.uppercase';
         const CLASS_EXTENSION    = '.class.php';
         const BASE_EXTENSION     = '.base.php';
@@ -18,8 +14,6 @@
         const TEMPLATE           = '/^[A-Za-z0-9_\-]+$/';
 
         const CALL_REGEXP = '/^(throw_|new_)(.*)$/';
-
-        const STATIC_CONSTRUCTOR = '__class_construct';
 
         const CLASS_NOT_RESOLVED = 'Class is not resolved for path {0}';
         const CLASS_NOT_FOUND = 'Class {0} is not found';
@@ -61,9 +55,7 @@
                     $class
                 );
             }
-            if (method_exists($class, self::STATIC_CONSTRUCTOR)) {
-                call_user_func(array($class, self::STATIC_CONSTRUCTOR), $this->scope);
-            }
+            $this->scope->introduce($class);
             $this->loaded[$class] = true;
         }
 
@@ -139,16 +131,8 @@
                 return $this->path_cache[$key] = $trial_path;
             }
 
-            // Small inheritance hack:
-            // Let system think that EXCEPTION_CLASS
-            // is inherited from OBJECT_CLASS (not from Exception)
-            $parent = $class === self::EXCEPTION_CLASS
-                ? self::OBJECT_CLASS
-                : get_parent_class($class)
-            ;
-
             return $this->path_cache[$key] = $this->pathFor(
-                $parent, $resource, $required
+                self::getOxygenParentClass($class), $resource, $required
             );
         }
 

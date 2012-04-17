@@ -22,6 +22,10 @@
         // TODO: in php 5.4 this should be refactored with traits
         // begin Copy-Paste block:
         
+        const OBJECT_CLASS    = 'Oxygen_Object';
+        const EXCEPTION_CLASS = 'Oxygen_Exception';
+        const SCOPE_CLASS     = 'Oxygen_Scope';
+
         const DEFAULT_TO_STRING = '[{0} Object]';
         const ASSERTION_FAILED = 'Assertion failed';
 
@@ -36,17 +40,15 @@
         private $stack = array();
 
         public function __call($method, $args) {
-            if(preg_match(self::CALL_REGEXP, $method, $match)){
-                $class = get_class($this);
-                if ($match[1] !== '') $class = get_parent_class($this);
-                return $this->{$match[2]}($match[3],$args);
-            } else {
-                $this->throw_Exception(
-                    self::UNKNOWN_METHOD,
-                    get_class($this),
-                    $method
-                );
-            }
+            $this->__assert(
+                preg_match(self::CALL_REGEXP, $method, $match),
+                self::UNKNOWN_METHOD,
+                get_class($this),
+                $method
+            );
+            $class = get_class($this);
+            if ($match[1] !== '') $class = get_parent_class($this);
+            return $this->{$match[2]}($match[3],$args);
         }
 
         public final function new_($class, $args = array()) {
@@ -106,7 +108,7 @@
                 $this->throwException('getComponentClass() call is valid only within template code');
             } else {
                 $call = &$this->stack[$count-1];
-                if($call[self::COMPONENT] === false) {
+                if($call[self::COMPONENT] !== false) {
                     return $call[self::COMPONENT] = self::componentClassFor(
                         $call[self::CLAZZ],
                         $call[self::RESOURCE]
@@ -129,7 +131,7 @@
             if (!$condition) {
                 $this->throw_Exception(
                     Oxygen_Utils_Text::format(
-                        ($message === false ? $message : self::ASSERTION_FAILED),
+                        ($message === false ? self::ASSERTION_FAILED : $message),
                         $arg0, $arg1, $arg2, $arg3, $arg4
                     )
                 );
@@ -138,11 +140,30 @@
 
         public function __complete() {
         }
+        
+        public static function __class_construct($scope) {
+            /* Intentionally left blank. No code here */
+        }
 
         public function __depend($scope) {
             $this->scope = $scope;
-        }        
+        }
         
+        public static function getOxygenParentClass($class) {
+            return $class === 'Oxygen_Exception'
+                ? 'Oxygen_Object'
+                : get_parent_class($class)
+            ;
+        }
+        
+        public static function isOxygenClass($class) {
+            return (is_subclass_of($class, 'Oxygen_Object')
+            || is_subclass_of($class, 'Oxygen_Exception')
+            || $class == 'Oxygen_Object' 
+            || $class == 'Oxygen_Exception'
+            );
+        }
+
         // end Copy-Paste block.
         
         
