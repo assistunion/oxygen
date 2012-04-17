@@ -162,10 +162,19 @@
 
         public function matchKey($str, &$key) {
             if(preg_match($this->extract, $str, $match)) {
-                $key = array_intersect_key($match, $this->params);
-                if($this->type === self::ARRAY_TYPE) {
-                    reset($key);
-                    $key = current($key);
+                switch($this->type){
+                case self::SINGLE:
+                  reset($match);
+                  $key = current($match);
+                  break;
+                case self::COLLECTION:
+                  $key = array_intersect_key($match, $this->params);
+                  break;
+                case self::ARRAY_TYPE:
+                  $key = array_intersect_key($match, $this->params);
+                  reset($key);
+                  $key = current($key);
+                  break;
                 }
                 return true;
             } else {
@@ -190,7 +199,7 @@
                 }
                 $compiled = preg_replace(self::PARAM_REGEXP,self::PARAM_GUARD_REPLACE, $this->pattern);
                 $compiled = preg_quote($compiled,'/');
-                $this->extract = '/' . preg_replace(
+                $this->extract = '/' . preg_replace (
                     self::PARAM_GUARD_REGEXP,
                     "'(?P<\\1>'.\$params['\\1'].')'",
                     $compiled
@@ -207,7 +216,7 @@
                 }
             } else {
                 $this->type = self::SINGLE;
-                $this->regexp = preg_quote($route,'/');
+                $this->regexp = preg_quote($this->pattern, '/');
                 $this->extract = '/' . $this->regexp . '/';
                 $data = array();
                 $data[$this->pattern] = $this->data;
