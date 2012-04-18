@@ -19,20 +19,20 @@
 			return $result;
 		}
 
-		public static function resultToArray($res, $key = false) {
+		public function resultToArray($res, $key = false) {
 			$array = array();
-			if($key === flase) {
-				while($row = mysql_fetch_array($res)) {
+			if($key === false) {
+				while($row = mysql_fetch_assoc($res)) {
 					$array[] = $row;
 				}
-			} else if ($row = mysql_fetch_array($res)) {
+			} else if ($row = mysql_fetch_assoc($res)) {
 				$this->__assert(
 					isset($row[$key]),
 					'There is no key named {0}',
 					$key
 				);
 				$array[$row[$key]] = $row;
-				while($row = mysql_fetch_array($res)) {
+				while($row = mysql_fetch_assoc($res)) {
 					$array[$row[$key]] = $row;
 				}
 			}
@@ -41,16 +41,16 @@
 
 		public function getDatabases() {
 			if($this->databases === false) {
-				$this->databases = self::resultToArray(
-					$this->rawQuery('select * from INFORMATION_SCHEMA.databases'),
-					'database'
+				$this->databases = $this->resultToArray(
+					$this->rawQuery('select * from INFORMATION_SCHEMA.SCHEMATA'),
+					'SCHEMA_NAME'
 				);
 			}
-			return $databases;
+			return $this->databases;
 		}
 
 		public function configure($x) {
-			$x['{database:str}']->Oxygen_SQL_Database($this->getDatabases());
+			$x['{SCHEMA_NAME:str}']->Oxygen_SQL_Database($this->getDatabases());
 		}
 
 		public function __construct($host = 'localhost', $user = 'root', $password = '') {
@@ -60,7 +60,7 @@
 		}
         
         public function __complete() {
-             $this->link = mysql_connect($this->host, $this->user, $this->password);
+             $this->link = @mysql_connect($this->host, $this->user, $this->password);
              $this->password = self::CENSORED_PASSWORD;
              $this->__assert($this->link, mysql_error());
         }

@@ -33,7 +33,7 @@
                 $this->introduce(self::getOxygenParentClass($class));
                 $constructor = new ReflectionMethod($class, self::STATIC_CONSTRUCTOR);
                 $this->introduced[$class] = true;
-                if ($constructor->getDeclaringClass() === $class) {
+                if ($constructor->getDeclaringClass()->getName() === $class) {
                     call_user_func(array($class, self::STATIC_CONSTRUCTOR), $this);
                 }
             }

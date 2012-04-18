@@ -101,8 +101,12 @@
         public function formatKey($data){
             $params = array();
             foreach($this->params as $name => $regexp) {
+                $value = ($this->type === self::ARRAY_TYPE) 
+                    ? $data
+                    : $data[$name]
+                ;
                 $this->__assert(
-                    preg_match($regexp, $value = $data[$name]),
+                    preg_match($regexp, $value),
                     'Data not conforms to pattern'
                 );
                 $params[$name] = $value;

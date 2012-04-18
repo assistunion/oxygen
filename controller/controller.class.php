@@ -31,6 +31,9 @@
 		protected $model         = null;
 		protected $parent        = null;
         protected $count         = false;
+        
+        protected $route = '';
+        protected $path = '';
 
 		public function __construct($model = null, $arguments = array()){
 			$this->model = $model;
@@ -49,9 +52,25 @@
 		public function getModel() {
 			return $this->model;
 		}
+        
+        public function go() {
+            return $this->path;
+        }
 
 		public function routeExists($route) {
-			$this->ensureConfigured();
+            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
+                switch($offset){
+                case '': return true;
+                case '.': return true;
+                case '..': return $this->parent !== null;
+                default:
+                    return $this->parent === null 
+                        ? $this->routeExists($match[4])
+                        : $this->parent['/']->routeExists($match[4])
+                    ;
+                }
+            }
+            $this->ensureConfigured();
 			preg_match($this->pattern, $route, $match);
 			$rest = $match[self::ROUTING_REST];
 			return $rest != $route;
@@ -75,6 +94,7 @@
 
 		public function getIterator() {
 			$this->ensureConfigured();
+			return $this->new_Oxygen_Controller_Iterator($this->routes, $this->path);
 		}
 
 		public function offsetUnset($offset){
@@ -89,17 +109,34 @@
 			$this->throw_Exception('Please refer to user manual how to configure controllers');
 		}
         
-        public function parseArgs($rawArgs){
-            $this->rawArgs = $rawArgs;
+        public function parseArgs(){
         }
         
-        public function extractArgs($rest){
+        public function shiftRoute($path, $route, $rest){
             preg_match(self::ARG_EXTRACT_REGEXP, $rest, $match);
-            $this->parseArgs($match[1]);
+            $this->rawArgs = $match[1];
+            $this->route = $route;
+            $this->path = $path . '/' .  $route . $this->rawArgs;
+            $this->parseArgs();
             return $match[2];
         }
 
 		public function offsetGet($offset) {
+            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
+                switch($offset){
+                case '': return $this;
+                case '.': return $this;
+                case '..': return $this->parent === null 
+                    ? $this->routeMissing('..')
+                    : $this->parent
+                ;
+                default:
+                    return $this->parent === null 
+                        ? $this[$match[4]]
+                        : $this->parent['/'][$match[4]]
+                    ;
+                }
+            }
 			$this->ensureConfigured();
 			preg_match($this->pattern, $offset, $match);
 			$rest = $match[self::ROUTING_REST];
@@ -115,7 +152,7 @@
             }
             $this->__assert($router !== null);
             $next = $router[$actual];
-            $rest = $next->extractArgs($rest);
+            $rest = $next->shiftRoute($this->route, $actual, $rest);
             return ($rest === '')
                 ? $next
                 : $next[$rest]
@@ -123,7 +160,10 @@
 		}
 
 		public function routeMissing($route) {
-			$this->throw_Exception('Route missing');
+			$this->__assert(false,
+				'Route {0} is missing',
+				$route
+			);
 		}
 
 		private function postConfigure() {

@@ -149,18 +149,21 @@
             $this->scope = $scope;
         }
         
+        // Small inheritance hack:
+        // Let system think that EXCEPTION_CLASS
+        // is inherited from OBJECT_CLASS (not from Exception)
         public static function getOxygenParentClass($class) {
-            return $class === 'Oxygen_Exception'
-                ? 'Oxygen_Object'
+            return $class === self::EXCEPTION_CLASS
+                ? self::OBJECT_CLASS
                 : get_parent_class($class)
             ;
         }
         
         public static function isOxygenClass($class) {
-            return (is_subclass_of($class, 'Oxygen_Object')
-            || is_subclass_of($class, 'Oxygen_Exception')
-            || $class == 'Oxygen_Object' 
-            || $class == 'Oxygen_Exception'
+            return (is_subclass_of($class, self::OBJECT_CLASS)
+            || is_subclass_of($class, self::EXCEPTION_CLASS)
+            || $class === self::OBJECT_CLASS
+            || $class === self::EXCEPTION_CLASS
             );
         }
 

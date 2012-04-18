@@ -143,7 +143,7 @@
             return (is_subclass_of($class, self::OBJECT_CLASS)
             || is_subclass_of($class, self::EXCEPTION_CLASS)
             || $class === self::OBJECT_CLASS
-            || $class === self::OBJECT_CLASS
+            || $class === self::EXCEPTION_CLASS
             );
         }
 
