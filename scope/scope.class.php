@@ -94,6 +94,37 @@
                 return $this->new_Oxygen_Exception_Wrapper($exception);
             }
         }
+        
+        public function setServer($_SERVER) {
+            $doc = str_replace('/', DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
+            $all = str_replace(DIRECTORY_SEPARATOR, '/', $_SERVER['DOCUMENT_ROOT']) . $_SERVER['REQUEST_URI'];
+            $qst = $_SERVER['QUERY_STRING'];
+            $oxy = $scope->OXYGEN_CLASS_PATH;
+            $len = strlen($oxy);
+            if (substr($full, 0, $len) === $oxy) {
+                $root = substr($oxy,strlen($doc));
+                $uri = substr($full,strlen($oxy));
+                $q = strpos($uri,'?');
+                if($q !== false) {
+                    $path = substr($uri,0,$q);
+                    $qs = substr($uri,$q+1);
+                } else {
+                    $path = $uri;
+                    $qs = '';
+                }
+                $a = array(
+                    'REQUEST_URI' => $full,
+                    'DOCUMENT_ROOT' => $doc,
+                    'OXYGEN_ROOT' => $oxy,
+                    'OXYGEN_ROOT_URI' => $root,
+                    'OXYGEN_URI' => $uri,
+                    'OXYGEN_PATH' => $path,
+                    'QUERY_STRING' => $qs
+                );
+            }
+        }
+        
+        
 
         public static function newRoot($classRoot) {
             $scope = new Oxygen_Scope();
@@ -104,8 +135,7 @@
             $loader->__complete();
             $loader->register();
             $scope->loader = $loader;
-            $scope->OXYGEN_PATH = $classRoot;
-            $scope->DOCUMENT_ROOT = str_replace('/',DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
+            $scope->OXYGEN_CLASS_PATH = $classRoot;
             self::__class_construct($scope);
             return $scope;
         }
