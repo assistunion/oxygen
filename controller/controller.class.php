@@ -25,13 +25,13 @@
 		private $routes     = array();
 		private $index      = array();
 		private $pattern    = '';
-        
+
         private $rawArgs = '';
 
 		protected $model         = null;
 		protected $parent        = null;
         protected $count         = false;
-        
+
         protected $route = '';
         protected $path = '';
 
@@ -45,6 +45,9 @@
 
 		public function __depend($scope){
 			$this->parent = $scope->controller;
+            if($this->parent === null) {
+                $this->path = $scope->OXYGEN_ROOT_URI;
+            }
 			$this->scope = $scope->new_Scope();
 			$this->scope->controller = $this;
 		}
@@ -52,7 +55,7 @@
 		public function getModel() {
 			return $this->model;
 		}
-        
+
         public function go() {
             return $this->path;
         }
@@ -64,7 +67,7 @@
                 case '.': return true;
                 case '..': return $this->parent !== null;
                 default:
-                    return $this->parent === null 
+                    return $this->parent === null
                         ? $this->routeExists($match[4])
                         : $this->parent['/']->routeExists($match[4])
                     ;
@@ -100,7 +103,7 @@
 		public function offsetUnset($offset){
 
 		}
-        
+
         public function __toString() {
             return (string)$this->getModel();
         }
@@ -108,10 +111,10 @@
 		public function offsetSet($offset, $value) {
 			$this->throw_Exception('Please refer to user manual how to configure controllers');
 		}
-        
+
         public function parseArgs(){
         }
-        
+
         public function shiftRoute($path, $route, $rest){
             preg_match(self::ARG_EXTRACT_REGEXP, $rest, $match);
             $this->rawArgs = $match[1];
@@ -126,12 +129,12 @@
                 switch($offset){
                 case '': return $this;
                 case '.': return $this;
-                case '..': return $this->parent === null 
+                case '..': return $this->parent === null
                     ? $this->routeMissing('..')
                     : $this->parent
                 ;
                 default:
-                    return $this->parent === null 
+                    return $this->parent === null
                         ? $this[$match[4]]
                         : $this->parent['/'][$match[4]]
                     ;

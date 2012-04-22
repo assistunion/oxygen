@@ -77,11 +77,11 @@
             return $obj->{$this->unwrapMethod}();
         }
 
-        public function wrap(&$obj){
+        public function wrap($obj){
             return call_user_func($this->wrap,$obj);
         }
 
-        public function unwrap(&$obj){
+        public function unwrap($obj){
             return call_user_func($this->unwrap,$obj);
         }
 

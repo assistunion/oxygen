@@ -4,9 +4,9 @@
 
         const FACTORY_REDEFINED = 'Factory {0} is redefined in this scope';
         const DEFAULT_FACTORY = 'Oxygen_Factory_Class';
-        
+
         const STATIC_CONSTRUCTOR = '__class_construct';
-        
+
 
         private $entries = array();
         private $parent = null;
@@ -25,7 +25,7 @@
             $this->__assertFreshName($name);
             return $this->entries[$name] = $this->new_Oxygen_Factory_Callable($callable);
         }
-        
+
         public function introduce($class) {
             if (self::isOxygenClass($class)
             && !isset($this->introduced[$class])
@@ -94,37 +94,52 @@
                 return $this->new_Oxygen_Exception_Wrapper($exception);
             }
         }
-        
-        public function setServer($_SERVER) {
-            $doc = str_replace('/', DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT']);
-            $all = str_replace(DIRECTORY_SEPARATOR, '/', $_SERVER['DOCUMENT_ROOT']) . $_SERVER['REQUEST_URI'];
-            $qst = $_SERVER['QUERY_STRING'];
-            $oxy = $scope->OXYGEN_CLASS_PATH;
-            $len = strlen($oxy);
-            if (substr($full, 0, $len) === $oxy) {
-                $root = substr($oxy,strlen($doc));
-                $uri = substr($full,strlen($oxy));
-                $q = strpos($uri,'?');
-                if($q !== false) {
-                    $path = substr($uri,0,$q);
-                    $qs = substr($uri,$q+1);
-                } else {
-                    $path = $uri;
-                    $qs = '';
-                }
-                $a = array(
-                    'REQUEST_URI' => $full,
-                    'DOCUMENT_ROOT' => $doc,
-                    'OXYGEN_ROOT' => $oxy,
-                    'OXYGEN_ROOT_URI' => $root,
-                    'OXYGEN_URI' => $uri,
-                    'OXYGEN_PATH' => $path,
-                    'QUERY_STRING' => $qs
-                );
+
+        public function setServer($SERVER = false) {
+
+            if ($SERVER === false) $SERVER = $_SERVER;
+            $this->SERVER = $SERVER;
+
+            $root    = str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']);
+            $request  = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
+            $oxygen  = $this->OXYGEN_ROOT;
+            $oxylen  = strlen($oxygen);
+            $this->__assert(
+                substr($request, 0, $oxylen) === $oxygen,
+                'Invalid oxygen path'
+            );
+            $oxygenRootURI = str_replace(DIRECTORY_SEPARATOR,'/',substr($oxygen, strlen($root)));
+            $oxygenURI = str_replace(DIRECTORY_SEPARATOR,'/',substr($request, strlen($oxygen)));
+            $q = strpos($oxygenURI,'?');
+            if($q !== false) {
+                $oxygenPath= substr($oxygenURI,0,$q);
+                $qs = substr($oxygenURI,$q+1);
+            } else {
+                $oxygenPath = $oxygenURI;
+                $qs = '';
             }
+            $this->DOCUMENT_ROOT = $root;
+            $this->OXYGEN_ROOT_URI = $oxygenRootURI;
+            $this->OXYGEN_URI = $oxygenURI;
+            $this->OXYGEN_PATH_INFO = $oxygenPath;
+            $this->QUERY_STRING = $qs;
         }
-        
-        
+
+        public function setStandardAssets() {
+            $a = $this->assets;
+            $a->register('css','Oxygen_Asset_CSS');
+            $a->register('less','Oxygen_Asset_LESS');
+            $a->register('js','Oxygen_Asset_JS');
+        }
+
+        public function setStandardCache() {
+            $this->cache = $this->new_Oxygen_Cache_File($this->temp_dir);
+        }
+
+        public function setSerializer() {
+            $serializer = $this->serializer = $this->new_Oxygen_Serializer();
+            $this->callable('serialize',array($serializer,'add'));
+        }
 
         public static function newRoot($classRoot) {
             $scope = new Oxygen_Scope();
@@ -135,9 +150,21 @@
             $loader->__complete();
             $loader->register();
             $scope->loader = $loader;
-            $scope->OXYGEN_CLASS_PATH = $classRoot;
+            $scope->OXYGEN_ROOT = $classRoot;
             self::__class_construct($scope);
             return $scope;
+        }
+
+        public function std($tmp) {
+            $this->temp_dir = $tmp;
+            $this->setStandardCache();
+            $this->setServer($_SERVER);
+            $this->setStandardAssets();
+            $this->REQUEST  = $_REQUEST;
+            $this->COOKIE   = $_COOKIE;
+            $this->FILES    = $_FILES;
+            $this->ENV      = $_ENV;
+            $this->setSerializer();
         }
 
         public static function __class_construct($scope){
