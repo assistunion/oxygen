@@ -100,7 +100,7 @@
             if ($SERVER === false) $SERVER = $_SERVER;
             $this->SERVER = $SERVER;
 
-            $root    = str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']);
+            $root    = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']),'/');
             $request  = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
             $oxygen  = $this->OXYGEN_ROOT;
             $oxylen  = strlen($oxygen);
