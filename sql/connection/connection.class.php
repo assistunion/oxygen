@@ -5,10 +5,10 @@
 		private $user = '';
         private $password = '';
         private $host = '';
-        
+
 		private $databases = false;
 		private $link = null;
-        
+
         const CENSORED_PASSWORD = '******';
 
 		public function rawQuery($sql) {
@@ -17,6 +17,10 @@
 				mysql_error($this->link)
 			);
 			return $result;
+		}
+		public function paramQuery($sql, $params = array()) {
+			$sql = preg_replace('/{(.*)}/e',"'\\''.mysql_real_escape_string(\$params['\\1']).'\\''",$sql);
+			return $this->rawQuery($sql);
 		}
 
 		public function resultToArray($res, $key = false) {
@@ -50,7 +54,7 @@
 		}
 
 		public function configure($x) {
-			$x['{SCHEMA_NAME:str}']->Oxygen_SQL_Database($this->getDatabases());
+			$x['{SCHEMA_NAME:str}']->Oxygen_SQL_Database($this->getDatabases(), $this);
 		}
 
 		public function __construct($host = 'localhost', $user = 'root', $password = '') {
@@ -58,7 +62,7 @@
 			$this->user = $user;
             $this->password = $password;
 		}
-        
+
         public function __complete() {
              $this->link = @mysql_connect($this->host, $this->user, $this->password);
              $this->password = self::CENSORED_PASSWORD;
