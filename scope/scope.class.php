@@ -9,8 +9,8 @@
 
 
         private $entries = array();
-        private $parent = null;
         private $introduced = array();
+        protected $parent = null;
 
         public function __depend($scope){
             $this->scope = $this;
@@ -61,7 +61,7 @@
             if(isset($this->entries[$name])){
                 return $this->entries[$name];
             } else if($this->parent !== $this) {
-                return $this->entries[$name] = $this->parent->resolve($name);
+                return $this->entries[$name] = $this->parent->resolve($name, $autoregister);
             } else {
                 $this->__assert($autoregister,'Scoped element {0} is not found', $name);
                 return $this->register($name,$name);
@@ -151,7 +151,7 @@
             $loader->register();
             $scope->loader = $loader;
             $scope->OXYGEN_ROOT = $classRoot;
-            self::__class_construct($scope);
+            $scope->introduce(self::SCOPE_CLASS);
             return $scope;
         }
 

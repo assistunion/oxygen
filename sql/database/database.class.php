@@ -1,13 +1,13 @@
 <?
 	class Oxygen_SQL_Database extends Oxygen_Controller {
 
-        private $connection = null;
+
         private $tables = false;
 
         public function getTables() {
             if($this->tables === false) {
-                $this->tables = $this->connection->resultToArray(
-                    $this->connection->paramQuery(
+                $this->tables = $this->resultToArray(
+                    $this->paramQuery(
                         'select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA={SCHEMA_NAME}',
                         $this->model
                     ),
@@ -17,13 +17,16 @@
             return $this->tables;
         }
 
-        public function __construct($db, $connection) {
-            parent::__construct($db);
-            $this->connection = $connection;
+        private function registerEntries() {
+            $this->db = $this;
+        }
+
+        public function __complete() {
+            $this->registerEntries();
         }
 
 		public function configure($x){
-            $x['{TABLE_NAME:str}']->Oxygen_SQL_Table($this->getTables(),$this);
+            $x['{TABLE_NAME:str}']->Oxygen_SQL_Table($this->getTables());
 		}
 	}
 

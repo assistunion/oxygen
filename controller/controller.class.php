@@ -1,6 +1,8 @@
 <?
 
-	abstract class Oxygen_Controller extends Oxygen_Collection {
+	class Oxygen_Controller extends Oxygen_Scope
+        implements Countable, ArrayAccess, IteratorAggregate
+    {
 
         const PARAM_EXTRACT_REGEXP = '/^_([0-9]+)_([0-9A-Za-z_]+)$/';
         const ARG_EXTRACT_REGEXP = '/([^\/]*)\/?(.*)/';
@@ -15,11 +17,6 @@
 
 		const UNWRAP_METHOD = 'getModel';
 
-		private $visualChild   = null;
-		private $logicalChild  = null;
-		private $visualParent  = null;
-		private $logicalParent = null;
-
 		private $configured = false;
 		private $children   = array();
 		private $routes     = array();
@@ -29,27 +26,20 @@
         private $rawArgs = '';
 
 		protected $model         = null;
-		protected $parent        = null;
         protected $count         = false;
 
         protected $route = '';
         protected $path = '';
 
-		public function __construct($model = null, $arguments = array()){
+		public function __construct($model = null){
 			$this->model = $model;
 		}
 
-        public static function __class_construct($scope){
-            $scope->controller = null; // Global parent controller;
-        }
-
 		public function __depend($scope){
-			$this->parent = $scope->controller;
-            if($this->parent === null) {
+            parent::__depend($scope);
+            if($this->isRoot()) {
                 $this->path = $scope->OXYGEN_ROOT_URI;
             }
-			$this->scope = $scope->new_Scope();
-			$this->scope->controller = $this;
 		}
 
 		public function getModel() {
@@ -65,9 +55,9 @@
                 switch($offset){
                 case '': return true;
                 case '.': return true;
-                case '..': return $this->parent !== null;
+                case '..': return !$this->isRoot();
                 default:
-                    return $this->parent === null
+                    return $this->isRoot()
                         ? $this->routeExists($match[4])
                         : $this->parent['/']->routeExists($match[4])
                     ;
@@ -123,18 +113,22 @@
             $this->parseArgs();
             return $match[2];
         }
+        
+        public function isRoot() {
+            return !($this->parent instanceof Oxygen_Controller);
+        }
 
 		public function offsetGet($offset) {
             if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
                 switch($offset){
                 case '': return $this;
                 case '.': return $this;
-                case '..': return $this->parent === null
+                case '..': return $this->isRoot()
                     ? $this->routeMissing('..')
                     : $this->parent
                 ;
                 default:
-                    return $this->parent === null
+                    return $this->isRoot()
                         ? $this[$match[4]]
                         : $this->parent['/'][$match[4]]
                     ;
@@ -193,13 +187,20 @@
 
 		public function ensureConfigured() {
 			if(!$this->configured){
-				$routes = $this->new_Oxygen_Controller_Routes($this);
+				$routes = $this->new_Controller_Routes();
 				$this->configure($routes);
 			    $this->postConfigure();
 			}
 		}
 
-		public abstract function configure($routes);
+		public function configure($routes) {
+        }
+
+        public static function __class_construct($scope) {
+            $scope->register('Controller_Routes','Oxygen_Controller_Routes');
+            $scope->register('Controller_Configurator','Oxygen_Controller_Configurator');
+            $scope->register('Controller','Oxygen_Controller');
+        }
 
 	}
 

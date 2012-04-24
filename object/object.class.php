@@ -32,7 +32,7 @@
         }
 
         public final function new_($class, $args = array()) {
-            return $this->scope->resolve($class)->getInstance($args);
+            return $this->scope->resolve($class)->getInstance($args, $this->scope);
         }
 
         public final function throw_($class, $args) {
