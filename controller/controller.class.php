@@ -24,6 +24,7 @@
 		private $pattern    = '';
 
         private $rawArgs = '';
+        protected $args = array();
 
 		protected $model         = null;
         protected $count         = false;
@@ -51,8 +52,8 @@
         }
 
 		public function routeExists($route) {
-            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
-                switch($offset){
+            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$route, $match)) {;
+                switch($route){
                 case '': return true;
                 case '.': return true;
                 case '..': return !$this->isRoot();
@@ -103,6 +104,9 @@
 		}
 
         public function parseArgs(){
+            $array = array();
+            parse_str($this->rawArgs, $array);
+            $this->args = $array;
         }
 
         public function shiftRoute($path, $route, $rest){
@@ -149,7 +153,7 @@
             }
             $this->__assert($router !== null);
             $next = $router[$actual];
-            $rest = $next->shiftRoute($this->route, $actual, $rest);
+            $rest = $next->shiftRoute($this->path, $actual, $rest);
             return ($rest === '')
                 ? $next
                 : $next[$rest]

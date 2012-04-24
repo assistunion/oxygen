@@ -84,6 +84,16 @@
         public function __set($name, $value) {
             $this->instance($name, $value);
         }
+        
+        public function __call($name, $args) {
+            if(preg_match(self::CALL_REGEXP, $name, $match)) {
+                $class = get_class($this);
+                if ($match[1] !== '') $class = get_parent_class($this);
+                return $this->{$match[2]}($match[3],$args);            
+            } else {
+                return $this->resolve($name, false)->getInstance($args);
+            }
+        }
 
         // Wraps given $exception into Oxygen_Exception_Wrapper
         // unless $exception is instance of Oxygen_Excpeion itself

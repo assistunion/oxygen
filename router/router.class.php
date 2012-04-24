@@ -1,15 +1,16 @@
 <?
     class Oxygen_Router extends Oxygen_Collection {
 
-        const TYPES_REGEXP = '/^(?:(int)|(str)|\/([^\/]*(?:\\\\\/[^\/]*)*)\/)$/';
+        const TYPES_REGEXP = '/^(?:(int)|(str)|(url)|(any)|\/([^\/]*(?:\\\\\/[^\/]*)*)\/)$/';
         const PARAM_REGEXP = '/{([0-9A-Za-z_]+):([^{}]+)}/';
-
 
         const PARAM_GUARD_REPLACE = '#\\1#';
         const PARAM_GUARD_REGEXP  = '/#([0-9A-Za-z_]+)#/e';
 
         const INT_REGEXP_BARE = '[0-9]+';
         const STR_REGEXP_BARE = '[^\/]+';
+        const URL_REGEXP_BARE = '[^\/&]+';
+        const ANY_REGEXP_BARE = '.+';
 
         const SINGLE     = 0;
         const COLLECTION = 1;
@@ -23,6 +24,8 @@
         private $pattern = '';
         private $data = null;
         private $params = array();
+        private $parseTransform = array();
+        private $formatTransform = array();
 
         public function setWrap($wrap, $method = false) {
             if($method !== false) {
@@ -84,27 +87,42 @@
         public function unwrap($obj){
             return call_user_func($this->unwrap,$obj);
         }
+        
+        private function url($data, $encode) {
+            return $encode 
+                ? urldecode($data)
+                : urldecode($data)
+            ;
+        }
+        private function any($data, $encode) {
+            return $data;
+        }
 
-        private function getRegexpFor ($type){
+        private function getTypeConfig($type){
             $this->__assert(
                 preg_match(self::TYPES_REGEXP, $type, $match),
                 self::INVALID_PARAM_TYPE,
                 $type
             );
             switch (count($match)) {
-                case 2: return self::INT_REGEXP_BARE;
-                case 3: return self::STR_REGEXP_BARE;
-                case 4: return $match[3];
+                case 2: return array(self::INT_REGEXP_BARE, 'any');
+                case 3: return array(self::STR_REGEXP_BARE, 'any');
+                case 4: return array(self::URL_REGEXP_BARE, 'url');
+                case 5: return array(self::URL_REGEXP_BARE, 'any');
+                case 6: return $match[3];
             }
         }
 
         public function formatKey($data){
             $params = array();
-            foreach($this->params as $name => $regexp) {
-                $value = ($this->type === self::ARRAY_TYPE) 
-                    ? $data
-                    : $data[$name]
-                ;
+            foreach($this->params as $name => $config) {
+                list($regexp, $transform) = $config;
+                $value = $this->$transform(
+                    (($this->type === self::ARRAY_TYPE) 
+                        ? $data
+                        : $data[$name]
+                    ), true
+                );
                 $this->__assert(
                     preg_match($regexp, $value),
                     'Data not conforms to pattern'
@@ -163,6 +181,14 @@
         public function getIterator() {
             return $this->new_Oxygen_Router_Iterator($this);
         }
+        
+        private function extractKey($match) {
+            $key = array();
+            foreach($this->params as $name => $config){
+                $key[$name] = $this->{$config[1]}($match[$name], false);
+            }
+            return $key;
+        }
 
         public function matchKey($str, &$key) {
             if(preg_match($this->extract, $str, $match)) {
@@ -172,10 +198,10 @@
                   $key = current($match);
                   break;
                 case self::COLLECTION:
-                  $key = array_intersect_key($match, $this->params);
+                  $key = $this->extractKey($match);
                   break;
                 case self::ARRAY_TYPE:
-                  $key = array_intersect_key($match, $this->params);
+                  $key = $this->extractKey($match);
                   reset($key);
                   $key = current($key);
                   break;
@@ -196,9 +222,9 @@
                     if(isset($params[$name])) {
                         $this->throw_Exception(self::ROUTE_PARAM_REDEFINED);
                     } else {
-                        $this->params[$name] = '/' . (
-                            $params[$name] = self::getRegexpFor($types[$i])
-                        ) . '/' ;
+                        $config = self::getTypeConfig($t = $types[$i]);
+                        $params[$name] = $config[0];
+                        $this->params[$name] = array('/'.$config[0].'/',$config[1]);
                     }
                 }
                 $compiled = preg_replace(self::PARAM_REGEXP,self::PARAM_GUARD_REPLACE, $this->pattern);
