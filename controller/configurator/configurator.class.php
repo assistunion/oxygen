@@ -13,7 +13,7 @@
 		public function getWrapped($model) {
 			$args = $this->args;
 			$args[0] = $model;
-			return $this->factory->getInstance($args);
+			return $this->factory->getInstance($args,$this->scope);
 		}
 
 		public function __call($class, $args) {
