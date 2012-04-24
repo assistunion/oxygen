@@ -47,8 +47,37 @@
 			return $this->model;
 		}
 
-        public function go() {
-            return $this->path;
+        public function go($path = true, $args = array(), $merge = true)) {
+            if(is_bool($path)) {
+                return $path 
+                    ? $this->path . $this->rawArgs
+                    : $this->path
+                ;
+            } else if(is_array($path)) {
+                $merge = $args;
+                if(is_array($merge)) {
+                    $merge = true;
+                }
+                $args = $path;
+                $path = '';
+            }
+            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#', $path, $match)) {
+                $rest = $match[4];
+                switch($path){
+                case '': return $this->go($args);
+                case '.': return $this->go($rest, $args, $merge);
+                case '..': return $this->isRoot()
+                    ? $this->routeMissing('..')->go($rest, $args, $merge)
+                    : $this->parent->go($rest, $args, $merge)
+                ;
+                default:
+                    if($args === false){
+                        return $this->OXYGEN_ROOT_URI . '/' . $match[4];  
+                    } else {
+                        return $this->OXYGEN_ROOT_URI . '/' . $match[4] . '&' . http_build_query($args);    
+                    }
+                }
+            }
         }
 
 		public function routeExists($route) {
@@ -88,7 +117,7 @@
 
 		public function getIterator() {
 			$this->ensureConfigured();
-			return $this->new_Oxygen_Controller_Iterator($this->routes, $this->path);
+			return $this->new_Oxygen_Controller_Iterator($this->routes, $this->go());
 		}
 
 		public function offsetUnset($offset){
@@ -113,7 +142,7 @@
             preg_match(self::ARG_EXTRACT_REGEXP, $rest, $match);
             $this->rawArgs = $match[1];
             $this->route = $route;
-            $this->path = $path . '/' .  $route . $this->rawArgs;
+            $this->path = $path . '/' .  $route;
             $this->parseArgs();
             return $match[2];
         }
