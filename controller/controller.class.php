@@ -47,7 +47,7 @@
 			return $this->model;
 		}
 
-        public function go($path = true, $args = array(), $merge = true)) {
+        public function go($path = true, $args = array(), $merge = true) {
             if(is_bool($path)) {
                 return $path 
                     ? $this->path . $this->rawArgs
