@@ -3,30 +3,27 @@
 
 
         private $tables = false;
+        private $connection = null;
+        
+        public function __complete() {
+            $this->connection = $this->SCOPE_CONNECTION;
+            $this->SCOPE_DATABASE = $this;
+        }
 
         public function getTables() {
             if($this->tables === false) {
-                $this->tables = $this->resultToArray(
-                    $this->paramQuery(
-                        'select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA={SCHEMA_NAME}',
-                        $this->model
-                    ),
+                $this->tables = $this->connection->paramQueryAssoc(
+                    'select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA={SCHEMA_NAME}',
+                    $this->model,
                     'TABLE_NAME'
                 );
             }
             return $this->tables;
         }
 
-        private function registerEntries() {
-            $this->db = $this;
-        }
-
-        public function __complete() {
-            $this->registerEntries();
-        }
 
 		public function configure($x){
-            $x['{TABLE_NAME:str}']->Oxygen_SQL_Table($this->getTables());
+            $x['{TABLE_NAME:url}']->Oxygen_SQL_Table($this->getTables());
 		}
 	}
 
