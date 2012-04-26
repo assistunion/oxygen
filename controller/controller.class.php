@@ -61,21 +61,24 @@
                 $args = $path;
                 $path = '';
             }
-            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#', $path, $match)) {
-                $rest = $match[4];
-                switch($path){
-                case '': return $this->go($args);
-                case '.': return $this->go($rest, $args, $merge);
-                case '..': return $this->isRoot()
-                    ? $this->routeMissing('..')->go($rest, $args, $merge)
-                    : $this->parent->go($rest, $args, $merge)
+            if ($path === '') {
+                $args = $merge 
+                    ? array_merge($this->args, $args)
+                    : $args
                 ;
-                default:
-                    if($args === false){
-                        return $this->OXYGEN_ROOT_URI . '/' . $match[4];  
-                    } else {
-                        return $this->OXYGEN_ROOT_URI . '/' . $match[4] . '&' . http_build_query($args);    
-                    }
+                return $this->path . ((count($args) > 0)
+                    ? '&' . http_build_query($args)
+                    : ''
+                );
+            } else {
+                $args = ((count($args) > 0)
+                    ? '&' . http_build_query($args)
+                    : ''
+                );
+                if ($path{0} === '/') {
+                    return $this->OXYGEN_ROOT_URI . $path . $args;
+                } else {
+                    return $this->path . $this->rawArgs . '/' . $path . $args;
                 }
             }
         }
@@ -151,7 +154,30 @@
             return !($this->parent instanceof Oxygen_Controller);
         }
 
-		public function offsetGet($offset) {
+
+        public function offsetGet($offset) {
+            if (isset($this->children[$offset])) {
+                return $this->children[$offset];
+            } else {
+                return $this->children[$offset] = $this->evalOffset($offset);
+            }
+        }
+
+        public function setOffsetCache($offset, $value) {
+            return $this->children[$offset] = $value;
+        }
+
+        public function tryOffsetCache($offset, &$result) {
+            if (isset($this->children[$offset])) {
+                $result = $this->children[$offset];
+                return true;
+            } else {
+                $result = false;
+                return false;
+            }
+        }
+
+        private function evalOffset($offset) {
             if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
                 switch($offset){
                 case '': return $this;

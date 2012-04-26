@@ -11,6 +11,20 @@
 
         const CENSORED_PASSWORD = '******';
 
+		private static $implementations = array(
+			'Connection' => 'Oxygen_SQL_Connection',
+			'Database'   => 'Oxygen_SQL_Database',
+			'Table'      => 'Oxygen_SQL_Table',
+			'Columns'    => 'Oxygen_SQL_Columns',
+			'Column'     => 'Oxygen_SQL_Column',
+			'Key'        => 'Oxygen_SQL_Key',
+			'Data'       => 'Oxygen_SQL_Data',
+			'Row'        => 'Oxygen_SQL_Row',
+			'Relations'  => 'Oxygen_SQL_Relations',
+			'Relation'   => 'Oxygen_SQL_Relation'
+        );
+
+
 		public function rawQuery($sql) {
 			$this->__assert(
 				$result = mysql_query($sql, $this->link),
@@ -73,8 +87,9 @@
 		}
         
         private function registerEntries() {
-            $this->register('Database', 'Oxygen_SQL_Database');
-            $this->register('Table', 'Oxygen_SQL_Table');
+        	foreach(self::$implementations as $name => $implementation) {
+        		$this->register($name, $implementation);
+        	}
             $this->SCOPE_CONNECTION = $this;
         }
         

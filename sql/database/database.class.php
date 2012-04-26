@@ -3,7 +3,7 @@
 
 
         private $tables = false;
-        private $connection = null;
+        public $connection = null;
         
         public function __complete() {
             $this->connection = $this->SCOPE_CONNECTION;
@@ -23,7 +23,7 @@
 
 
 		public function configure($x){
-            $x['{TABLE_NAME:url}']->Oxygen_SQL_Table($this->getTables());
+            $x['{TABLE_NAME:url}']->Table($this->getTables());
 		}
 	}
 

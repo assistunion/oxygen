@@ -5,6 +5,7 @@
 		private $routers = null;
         private $path = '';
 		private $internal = null;
+		private $key = null;
 
 		public function __construct($routers, $path) {
 			$this->routers = $routers;
@@ -23,17 +24,26 @@
 		}
 
 		public function current() {
-            $current = $this->internal->current();
-            $current->shiftRoute($this->path, $this->key(),'');
+			$key = $this->key();
+			if(!$this->scope->tryOffsetCache($key,$current)) {
+	            $current = $this->internal->current();
+    	        $current->shiftRoute($this->path, $key,'');
+    	        $this->scope->setOffsetCache($key,$current);
+			}
 			return $current;
 		}
 
 		public function next() {
+			$this->key = null;
 			$this->internal->next();
 		}
 
 		public function key() {
-			return $this->internal->key();
+			if ($this->key !== null) {
+				return $this->key;
+			} else {
+				return $this->key = $this->internal->key();
+			}
 		}
 
 		public function rewind(){
@@ -43,6 +53,7 @@
 			} else {
 				$this->internal = null;
 			}
+			$this->key = null;
 		}
 	}
 
