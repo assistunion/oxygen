@@ -1,6 +1,6 @@
 <?
 	
-	class Oxygen_SQL_Key extends Oxygen_Controller {
+	class Oxygen_SQL_Key extends Oxygen_SQL_Columns {
 	}
 
 ?>	

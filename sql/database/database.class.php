@@ -4,10 +4,12 @@
 
         private $tables = false;
         public $connection = null;
-        
+        public $name = '';
+       
         public function __complete() {
             $this->connection = $this->SCOPE_CONNECTION;
             $this->SCOPE_DATABASE = $this;
+            $this->name = $this->model['SCHEMA_NAME'];
         }
 
         public function getTables() {
@@ -20,7 +22,6 @@
             }
             return $this->tables;
         }
-
 
 		public function configure($x){
             $x['{TABLE_NAME:url}']->Table($this->getTables());

@@ -12,7 +12,7 @@
         }
 
         public function offsetGet($offset) {
-            return $this->new_Oxygen_Controller_Configurator($offset);
+            return $this->new_Configurator($offset);
         }
 
         public function offsetUnset($offset) {

@@ -120,7 +120,7 @@
 
 		public function getIterator() {
 			$this->ensureConfigured();
-			return $this->new_Oxygen_Controller_Iterator($this->routes, $this->go());
+			return $this->new_Iterator($this->routes, $this->go());
 		}
 
 		public function offsetUnset($offset){
@@ -128,7 +128,7 @@
 		}
 
         public function __toString() {
-            return (string)$this->getModel();
+            return $this->route;
         }
 
 		public function offsetSet($offset, $value) {
@@ -153,7 +153,6 @@
         public function isRoot() {
             return !($this->parent instanceof Oxygen_Controller);
         }
-
 
         public function offsetGet($offset) {
             if (isset($this->children[$offset])) {
@@ -239,14 +238,14 @@
 		public function add($class, $route, $model) {
             $index = count($this->routes) + 1;
             $this->index[$index] = $route;
-			return $this->routes[$route] = $this->new_Oxygen_Router(
+			return $this->routes[$route] = $this->new_Router(
 				$route, $model, $class, self::UNWRAP_METHOD
 			);
 		}
 
 		public function ensureConfigured() {
 			if(!$this->configured){
-				$routes = $this->new_Controller_Routes();
+				$routes = $this->new_Routes();
 				$this->configure($routes);
 			    $this->postConfigure();
 			}
@@ -256,9 +255,11 @@
         }
 
         public static function __class_construct($scope) {
-            $scope->register('Controller_Routes','Oxygen_Controller_Routes');
-            $scope->register('Controller_Configurator','Oxygen_Controller_Configurator');
+            $scope->register('Router','Oxygen_Router');
+            $scope->register('Routes','Oxygen_Controller_Routes');
+            $scope->register('Configurator','Oxygen_Controller_Configurator');
             $scope->register('Controller','Oxygen_Controller');
+            $scope->register('Iterator','Oxygen_Controller_Iterator');
         }
 
 	}

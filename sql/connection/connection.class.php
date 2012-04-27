@@ -19,10 +19,15 @@
 			'Column'     => 'Oxygen_SQL_Column',
 			'Key'        => 'Oxygen_SQL_Key',
 			'Data'       => 'Oxygen_SQL_Data',
-			'Row'        => 'Oxygen_SQL_Row',
+            'Row'        => 'Oxygen_SQL_Row',
+            'DataSet'    => 'Oxygen_SQL_DataSet',
 			'Relations'  => 'Oxygen_SQL_Relations',
 			'Relation'   => 'Oxygen_SQL_Relation'
         );
+
+        public function __toString() {
+            return $this->host;
+        }
 
 
 		public function rawQuery($sql) {

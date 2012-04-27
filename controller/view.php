@@ -1,10 +1,10 @@
 <?print_r($this->args)?>
 <ul>
-<li><a href="<?=$this['.']->go()?>">-- CURRENT --</a></li>
+<li><?$this['.']->put_as_current()?></li>
 <?if(isset($this['..'])):?>
-<li><a href="<?=$this['..']->go()?>">-- PARENT --</a></li>
+<li><?$this['..']->put_as_parent()?></li>
 <?endif?>
 <?foreach($this as $route=>$child):?>
-<li><a href="<?=$child->go()?>"><?=$route?></a></li>
+<li><?=$child->put_as_child()?></li>
 <?endforeach?>
 </ul>
