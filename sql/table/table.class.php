@@ -4,14 +4,35 @@
 
     	public $connection = null;
     	public $database = null;
+
     	public $columns = false;
     	public $key = false;
-    	public $relations = false;
+
     	public $data = false;
         public $name = ''
         public $fullName = '';
 
-    	public function getColumns() {
+        public final function getOffset() {
+            return 0;
+        }
+
+        public final function getLimit() {
+            return Oxygen_DataSet::MAX_ROWS;
+        }
+
+        public final function getFilter() {
+            return array();
+        }
+
+        public final function getHaving() {
+            return array();
+        }
+
+        public final function getOrder() {
+            return array();
+        }
+
+    	public final function getColumns() {
     		if ($this->columns !== false) return $this->columns;
     		$this->columns = $this->connection->paramQueryAssoc(
     			'select * from INFORMATION_SCHEMA.COLUMNS 
@@ -30,16 +51,12 @@
             return $this->columns;
     	}
 
-        public function getKey() {
+        public final function getKey() {
             if ($this->key === false) $this->getColumns();
             return $this->key;
         }
 
-    	public function getRelations() {
-    		return $this->relations;
-    	}
-
-    	public function getData() {
+    	public final function getData() {
             if($this->data !== false) return $this->data;
     		return $this->data = new DataSet($this);
     	}
@@ -48,7 +65,6 @@
         	$x['columns']->Columns($this->getColumns());
             $x['key']->Key($this->getKey());
         	$x['data']->Data($this->getData());
-        	$x['relations']->Relations($this->getRelations());
         }
 
         public function __complete() {

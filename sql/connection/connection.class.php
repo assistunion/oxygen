@@ -22,13 +22,13 @@
             'Row'        => 'Oxygen_SQL_Row',
             'DataSet'    => 'Oxygen_SQL_DataSet',
 			'Relations'  => 'Oxygen_SQL_Relations',
-			'Relation'   => 'Oxygen_SQL_Relation'
+			'Relation'   => 'Oxygen_SQL_Relation',
+			'Builder'    => 'Oxygen_SQL_Builder'
         );
 
         public function __toString() {
             return $this->host;
         }
-
 
 		public function rawQuery($sql) {
 			$this->__assert(
@@ -49,6 +49,10 @@
         
         public function rawQueryAssoc($sql, $key = 'id') {
             return $this->resultToArray($this->rawQuery($sql),$key);
+        }
+
+        public function getData($domain, $columns, $filter, $key, $having, $order, $offset, $limit) {
+        	
         }
 
 		public function resultToArray($res, $key = false) {
@@ -97,6 +101,8 @@
         	}
             $this->SCOPE_CONNECTION = $this;
         }
+
+
         
         public function __complete() {
             $this->link = @mysql_connect($this->host, $this->user, $this->password);
