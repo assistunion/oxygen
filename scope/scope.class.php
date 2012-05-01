@@ -7,7 +7,6 @@
 
         const STATIC_CONSTRUCTOR = '__class_construct';
 
-
         private $entries = array();
         private $introduced = array();
         protected $parent = null;
@@ -105,10 +104,9 @@
             }
         }
 
-        public function setServer($SERVER = false) {
+        public function setServer($SERVER) {
 
-            if ($SERVER === false) $SERVER = $_SERVER;
-            $this->SERVER = $SERVER;
+            $this->SCOPE_SERVER = $SERVER;
 
             $root    = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']),'/');
             $request  = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
@@ -142,10 +140,6 @@
             $a->register('js','Oxygen_Asset_JS');
         }
 
-        public function setStandardCache() {
-            $this->cache = $this->new_Oxygen_Cache_File($this->temp_dir);
-        }
-
         public function setSerializer() {
             $serializer = $this->serializer = $this->new_Oxygen_Serializer();
             $this->callable('serialize',array($serializer,'add'));
@@ -159,21 +153,23 @@
             $loader->__depend($scope);
             $loader->__complete();
             $loader->register();
-            $scope->loader = $loader;
+            $scope->SCOPE_LOADER = $loader;
             $scope->OXYGEN_ROOT = $classRoot;
             $scope->introduce(self::SCOPE_CLASS);
             return $scope;
         }
 
-        public function std($tmp) {
-            $this->temp_dir = $tmp;
-            $this->setStandardCache();
+        public function setCommonHttpPrefs($temp) {
+            $this->register('Cache','Oxygen_Cache_File');
+            $this->register('Connection','Oxygen_SQL_Connection');
+            $this->TMP_DIR = $temp;
+            $this->SCOPE_CACHE    = $this->new_Cache($temp);
             $this->setServer($_SERVER);
             $this->setStandardAssets();
-            $this->REQUEST  = $_REQUEST;
-            $this->COOKIE   = $_COOKIE;
-            $this->FILES    = $_FILES;
-            $this->ENV      = $_ENV;
+            $this->SCOPE_REQUEST  = $_REQUEST;
+            $this->SCOPE_COOKIE   = $_COOKIE;
+            $this->SCOPE_FILES    = $_FILES;
+            $this->SCOPE_ENV      = $_ENV;
             $this->setSerializer();
         }
 

@@ -62,7 +62,7 @@
             $assets = $scope->assets;
             array_push($this->stack, $call);
             try {
-                include $scope->loader->pathFor(
+                include $scope->SCOPE_LOADER->pathFor(
                     $class,
                     $name . Oxygen_Loader::TEMPLATE_EXTENSION
                 );

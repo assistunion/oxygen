@@ -27,20 +27,39 @@
 			return $path;
 		}
 
-		// Loads given key. In case of nonexistent key 
-		// throws an exception unless optional second parameter is given
-		// (which is returned instead)
-		public function load($key) {
-			$path = $this->getPath($key);
-			if(!file_exists($path)){
-				if(func_num_args()==2){
-					return func_get_arg(1);
-				} else {
-					$this->throwException('Nonexistent cache key');
-				}
-			}
-			return file_get_contents($path);
-		}
+        // Loads given key. In case of nonexistent key 
+        // throws an exception unless optional second parameter is given
+        // (which is returned instead)
+        public function load($key) {
+            $path = $this->getPath($key);
+            if(!file_exists($path)){
+                if(func_num_args()==2){
+                    return func_get_arg(1);
+                } else {
+                    $this->throw_Exception('Nonexistent cache key');
+                }
+            }
+            return file_get_contents($path);
+        }
+        
+        // Deserializes given key. In case of nonexistent key 
+        // throws an exception unless optional second parameter is given
+        // (which is returned instead)
+        public function deserialize($key) {
+            $path = $this->getPath($key);
+            if(!file_exists($path)){
+                if(func_num_args()==2){
+                    return func_get_arg(1);
+                } else {
+                    $this->throw_Exception('Nonexistent cache key');
+                }
+            }
+            return unserialize(file_get_contents($path));
+        }
+        
+        public function serialize($key, $value) {
+            $this->store($key,serialize($value));
+        }
 
 		public function storeAll($key,$array) {
 			$path = $this->getPath($key);

@@ -127,13 +127,17 @@
 
             $trial_path = $dir . DIRECTORY_SEPARATOR . $resource;
 
-            if (file_exists($trial_path)) {
+            if ($this->pathExists($trial_path)) {
                 return $this->path_cache[$key] = $trial_path;
             }
 
             return $this->path_cache[$key] = $this->pathFor(
                 self::getOxygenParentClass($class), $resource, $required
             );
+        }
+        
+        private function pathExists($path) {
+            return file_exists($path);
         }
 
         private function parse($class) {
