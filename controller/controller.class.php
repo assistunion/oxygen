@@ -82,6 +82,9 @@
                 }
             }
         }
+        
+        public function __routed() {
+        }
 
 		public function routeExists($route) {
             if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$route, $match)) {;
@@ -147,6 +150,7 @@
             $this->route = $route;
             $this->path = $path . '/' .  $route;
             $this->parseArgs();
+            $this->__routed();
             return $match[2];
         }
         
