@@ -2,13 +2,33 @@
 
 	class Oxygen_SQL_Builder extends Oxygen_Object {
 
+		// function safeName($name) relies on the assumption
+		// that nobody will use a dot (.) within column names.
+		// Even in escaped form. Also we assume that there are
+		// no escaped leading and trailing spaces.
+		// (If it's the case for you - my regrets!)
+		// So we will treat any dots in names as dots in qualified names.
 		private static function safeName($name) {
 			if(!preg_match('/^[A-Z_][\.A-Z0-9_]*$/i', $name)){
-				return '`'. str_replace('`','``',$name) . '`';
+				$pieces = explode('.', $name);
+				foreach($pieces as $i => $piece) {
+					$pieces[$i] = '`'. str_replace('`', '``', $piece) . '`';
+				}
+				return implode('.', $pieces);
 			} else {
 				return $name;
 			}
-		}		
+		}
+
+		public static function buildValueList($values) {
+			$sql = '';
+			foreach ($values as $value) {
+				$sql .= $sql === '' ? '(' : ','	;
+				$sql .= self::escapeValue($value);
+			}
+			$sql .= $sql === '' ? '()' : ')';
+			return $sql;
+		}
 
 		public static function escapeValue($val) {
 			return '\'' . mysql_real_escape_string($val) . '\'';
@@ -23,7 +43,7 @@
 			foreach ($on as $key => $value) {
 				$result .= $result === '' ? '' :'and ';
 				$result .= is_integer($key)
-					? $value;
+					? $value
 					: '(' . self::safeName($key) . ' = ' . self::escapeValue($value) . ')'
 				;
 				$result .= "\n";
@@ -47,6 +67,10 @@
 			}
 		}
 
+		public static function buildColumns($columns) {
+
+		}
+
 
 
 		public function buildSql($meta, $update = false) {
@@ -63,23 +87,11 @@
 			);
 			$sql = '';
 			foreach ($parts as $section => $content) {
-				if($countent !== false) {
-
+				if($content !== false) {
+					$sql .= $section . "\n" . self::indent($content) . "\n";
 				}
 			}
-
-
-				$safeAlias = self::safeName($alias);
-				foreach ($joined as $c) {
-					$columns .= ($first ? '' : ',') . $indent;
-					$first = false;
-					$columnName = $['COLUMN_NAME'];
-					$safeName = $safeAlias . '.' . self::safeName($columnName);
-					$columnAlias = self::safeName($alias . '.' . $columnName);
-					$columns .= '   ' . $safeName . ' as ' . $columnAlias;
-				}
-
-			}
+			return $sql;
 		}
 
 		public function buildSelect($base, $projection) {
