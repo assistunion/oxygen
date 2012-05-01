@@ -4,9 +4,6 @@
 [submodule "lib/lessphp"]
 	path = lib/lessphp
 	url = https://github.com/leafo/lessphp.git
-[submodule "lib/minify"]
-	path = lib/minify
-	url = https://github.com/mrclay/minify.git
 [submodule "lib/silk-icons"]
 	path = lib/silk-icons
 	url = https://github.com/markjames/famfamfam-silk-icons.git
