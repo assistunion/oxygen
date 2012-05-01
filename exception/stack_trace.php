@@ -12,7 +12,7 @@
 <?if(is_object($arg)||is_array($arg)):?>
 <li class="complex-argument">
 <span class="type"><?if(is_object($arg)):?><?=get_class($arg)?><?elseif(is_array($arg)):?>Array<?endif?></span>
-<pre class="value"><?print_r($arg)?></pre>
+<pre class="value"><?//print_r($arg)?></pre>
 </li>
 <?else:?>
 <li class="simple-argument">

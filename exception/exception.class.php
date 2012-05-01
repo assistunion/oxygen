@@ -9,19 +9,19 @@
             parent::__construct($message, $code);
             $this->previous = $previous; //TODO: See above.
         }
-        
+
         public function getWrapTrace() {
             return $this->getTrace();
         }
-        
+
         public function getName() {
             return get_class($this);
         }
-        
-        // COPY-PASTE BLOCK FROM Oxygen_Object (Here we have to inherit from Exception) 
+
+        // COPY-PASTE BLOCK FROM Oxygen_Object (Here we have to inherit from Exception)
         // TODO: in php 5.4 this should be refactored with traits
         // begin Copy-Paste block:
-        
+
         const OBJECT_CLASS    = 'Oxygen_Object';
         const EXCEPTION_CLASS = 'Oxygen_Exception';
         const SCOPE_CLASS     = 'Oxygen_Scope';
@@ -82,7 +82,7 @@
             $assets = $scope->assets;
             array_push($this->stack, $call);
             try {
-                include $scope->loader->pathFor(
+                include $scope->SCOPE_LOADER->pathFor(
                     $class,
                     $name . Oxygen_Loader::TEMPLATE_EXTENSION
                 );
@@ -140,7 +140,7 @@
 
         public function __complete() {
         }
-        
+
         public static function __class_construct($scope) {
             /* Intentionally left blank. No code here */
         }
@@ -148,7 +148,7 @@
         public function __depend($scope) {
             $this->scope = $scope;
         }
-        
+
         // Small inheritance hack:
         // Let system think that EXCEPTION_CLASS
         // is inherited from OBJECT_CLASS (not from Exception)
@@ -158,7 +158,7 @@
                 : get_parent_class($class)
             ;
         }
-        
+
         public static function isOxygenClass($class) {
             return (is_subclass_of($class, self::OBJECT_CLASS)
             || is_subclass_of($class, self::EXCEPTION_CLASS)
@@ -168,8 +168,8 @@
         }
 
         // end Copy-Paste block.
-        
-        
+
+
     }
 
 ?>
