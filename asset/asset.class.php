@@ -9,6 +9,9 @@
         private $hash = false;
         private $compiled = false;
 
+        public $cache = false;
+        private $loader = false;
+
         const URL_REGEX = "|^https?://|";
         const REMOTE_KEY_TEMPLATE = 'cached-url-{0}';
 
@@ -20,6 +23,12 @@
         public function __construct($ext) {
             $this->ext = $ext;
         }
+
+      public function __complete() {
+            $this->cache = $this->scope->SCOPE_CACHE;
+            $this->loader = $this->scope->SCOPE_LOADER;
+        }
+
 
         public function addRemote($url) {
             if(isset($this->list[$url])) return;
@@ -53,7 +62,7 @@
         }
 
         protected function getCachedUrlContent($url) {
-            $cache = $this->scope->cache;
+            $cache = $this->cache;
             $key = Oxygen_Utils_Text::format(self::REMOTE_KEY_TEMPLATE,$url);
             if(!isset($cache[$key])){
                 return $cache[$key] = file_get_contents($url);
@@ -77,7 +86,7 @@
         public function compile() {
             if(!$this->compiled) {
                 $hash  = $this->getHashCode();
-                $cache = $this->scope->cache;
+                $cache = $this->cache;
                 if(!isset($cache[$hash])) {
                     $source = array();
                     foreach ($this->list as $key => $asset) {
@@ -101,7 +110,7 @@
             if($key === false) $key = implode('::', $call);
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = $this->scope->loader->pathFor($class, $name . $this->ext);
+            $path = $this->loader->pathFor($class, $name . $this->ext);
             if($path !== false) {
                 $key = $path . '::' . $component;
                 if (!isset($this->list[$key])){
