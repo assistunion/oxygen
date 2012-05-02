@@ -25,25 +25,25 @@
 			'Builder'    => 'Oxygen_SQL_Builder',
             'Security'   => 'Oxygen_SQL_Security'
         );
-        
+
         private function registerEntries() {
             foreach(self::$implementations as $name => $implementation) {
                 $this->register($name, $implementation);
             }
             $this->SCOPE_CONNECTION = $this;
             $this->builder = $this->new_Builder();
-        }        
-        
+        }
+
         public function __construct($config, $refreshSchemata = false) {
             parent::__construct($config);
             $this->model['databases'] = array();
             $this->refreshSchemata = $refreshSchemata;
         }
-        
+
         public function __complete() {
             $this->link = @mysql_connect(
-                $this->model['host'], 
-                $this->model['user'], 
+                $this->model['host'],
+                $this->model['user'],
                 $this->model['pass']
             );
             $this->model['pass'] = self::CENSORED_PASSWORD;
@@ -53,9 +53,9 @@
             $this->registerEntries();
             $this->rawQuery('set names utf8');
         }
-        
+
         public function configure($x) {
-            $this->reflectDatabases($this->refreshSchemata);       
+            $this->reflectDatabases($this->refreshSchemata);
             $x['{database:url}']->Database($this->model['databases']);
         }
 
@@ -120,25 +120,25 @@
 			}
 			return $array;
 		}
-        
+
         private function getDbKey($dbName) {
             return "mysql://{$this->model['user']}@{$this->model['host']}/$dbName";
         }
-        
+
         private function getReflectedDb($name) {
             return $this->cache->deserialize(
-                $this->getDbKey($name), 
+                $this->getDbKey($name),
                 false
             );
         }
-        
+
         public function cacheReflectedDb($name, $data) {
             $this->cache->serialize(
                 $this->getDbKey($name),
                 $data
             );
         }
-        
+
         private function reflectDatabases($refresh) {
             //if not forced to refresh schemata - exclude already reflected databases
             if($refresh) {
@@ -155,14 +155,13 @@
                     }
                 }
             }
-            
+
             if (count($toReflect) === 0) return;
-            
+
             $list = $this->builder->buildValueList($toReflect);
             $columns = $this->rawQuery("SELECT
                     TABLE_SCHEMA             as `database`,
                     TABLE_NAME               as `table`,
-                    'columns'                as `feature`,
                     COLUMN_NAME              as `column`,
                     ORDINAL_POSITION         as `ordinal`,
                     COLUMN_DEFAULT           as `default`,
@@ -216,12 +215,20 @@
                 $this->structurize($row, $path, $this->model['databases']);
             }
             mysql_free_result($keys);
-            
+
             foreach($toReflect as $db) {
                 $this->cacheReflectedDb($db, $this->model['databases'][$db]);
             }
+
+            $tid = 0;
+            foreach($this->model['databases'] as &$db) {
+                foreach($db['tables'] as &$table) {
+                    $table['id'] = $tid++;
+                }
+            }
+
         }
-        
+
         private function structurize($row, $path, &$root) {
             $prevProp = 'connection';
             $prevObj = &$this->model;
@@ -248,9 +255,9 @@
                 $x = &$x[$key];
                 $x = &$x[$collection];
             }
-        }        
+        }
 
-        
+
 	}
 
 ?>

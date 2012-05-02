@@ -5,11 +5,16 @@
     	public $connection = null;
     	public $database = null;
 
-    	public $columns = false;
-    	public $key = false;
-
     	public $data = array();
         public $meta = array();
+
+        public $columns = array(
+            'select' => 'false',
+            'update' => 'false',
+            'delete' => 'false',
+            'insert' => 'false'
+        );
+        public $keys = array();
 
         public $name = '';
         public $fullName = '';
@@ -24,18 +29,8 @@
             $regexp = $policy['columns-regexp'];
             if ($alias !== false) $intent .= '::' . $alias;
     		if (isset($this->columns[$intent])) return $this->columns[$intent];
-            $columns = $this->connection->paramQueryAssoc(
-    			'select * from INFORMATION_SCHEMA.COLUMNS
-    			 where
-    			 	TABLE_SCHEMA = {TABLE_SCHEMA}
-    			 	AND TABLE_NAME = {TABLE_NAME}
-                ',
-    			 $this->model,
-    			 'COLUMN_NAME'
-    		);
-
             $newColumns = array();
-            foreach ($columns as $name => $def) {
+            foreach ($this->model['columns'] as $name => $def) {
                 $qualified = $alias === false
                     ? $name
                     : $alias . '.' . $name
@@ -44,20 +39,8 @@
                     $newColumns[$qualified] = $def;
                 }
             }
-            $this->columns[$intent] = $newColumns;
-            $this->key = array();
-            foreach($this->columns as $name => $column) {
-                if($column['COLUMN_KEY'] === 'PRI') {
-                    $this->key[$name] = $column;
-                }
-            }
-            return $this->columns;
+            return $this->columns[$intent] = $newColumns;
     	}
-
-        public final function getKey() {
-            if ($this->key === false) $this->getColumns();
-            return $this->key;
-        }
 
         public function resolveAlias($alias = false) {
             return $alias === false
@@ -74,7 +57,7 @@
 
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
-            $x['key']->Key($this->getKey());
+            $x['{name:url}-key']->Key($this->model['constraints']);
         	$x['data']->Data($this->getData());
         }
 
@@ -84,8 +67,25 @@
         	$this->SCOPE_TABLE = $this;
         }
         
-        
-        private function getMeta($alias) {
+        public function getKeys($alias) {
+            if(isset($this->keys[$alias])) return $this->keys[$alias];
+            $newKeys = array();
+            foreach($this->model['keys'] as $name => $key) {
+                $newKeys[$name] = array();
+                foreach($key as $name => $column) {
+                    $newKeys
+                }
+            }
+        }
+
+
+        public function getPolicyPredicate($alias, $intent) {
+            $policy = $this->getPolicy($alias, $intent);
+            return $policy['rows'];
+        }
+
+        private function getMeta($alias = false, $intent = 'select') {
+            $alias = $this->resolveAlias($alias);
             if(isset($this->meta[$alias])) return $this->meta[$alias];
             $domain = array();
             $domain[$alias] = array(
@@ -95,43 +95,16 @@
             );
             return $this->meta[$alias] = array(
                 'connection' => $this->connection,
-                'columns'    => $this->getColumns($alias),
+                'columns'    => $this->getColumns($alias, $intent),
                 'domain'     => $domain,
-                'filter'     => $this->getPolicyPredicate(),  //TODO: Here we can implement row-level security by policies !!!
-                'key'        => $this->getKey($alias),
+                'filter'     => $this->getPolicyPredicate($alias, $intent),
+                'keys'       => $this->getKeys($alias),
                 'grouping'   => false,
                 'offset'     => false,
                 'limit'      => false,
                 'order'      => false,
                 'having'     => false
             );
-
-            $this->key = $this->table->getKey();
-            $this->columns = $this->table->getColumns();
-            $columns = "";
-            $source = self::safeName($this->table->name) . ' as ' . MASTER_ALIAS;
-            $first = true;
-            foreach($this->columns as $c) {
-                $columns .= ($first ? '' : ',') . $indent;
-                $first = false;
-                $columnAlias = self::safeName($c['COLUMN_NAME']);
-                $safeName = MASTER_ALIAS . '.' . $columnAlias;
-                $columns .= '   ' . $safeName . ' as ' . $columnAlias;
-            }
-            foreach($this->with as $alias => $relation) {
-                $related = $relation->table;
-                $joined = $related->getColumns();
-                $source .= $indent . self::safeName($related->name) . ' as ' . $alias;
-                $safeAlias = self::safeName($alias);
-                foreach ($joined as $c) {
-                    $columns .= ($first ? '' : ',') . $indent;
-                    $first = false;
-                    $columnName = $c['COLUMN_NAME'];
-                    $safeName = $safeAlias . '.' . self::safeName($columnName);
-                    $columnAlias = self::safeName($alias . '.' . $columnName);
-                    $columns .= '   ' . $safeName . ' as ' . $columnAlias;
-                }
-            }
         }
 
     }
