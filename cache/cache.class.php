@@ -6,6 +6,7 @@
 		public abstract function store($key, $value);
 		public abstract function exists($key);
 		public abstract function remove($key);
+        public abstract function echoValue($key);
 		public abstract function storeAll($key, $array);
         public abstract function serialize($key, $value);
         public abstract function deserialize($key);

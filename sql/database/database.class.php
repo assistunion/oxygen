@@ -6,8 +6,6 @@
         public function __complete() {
             $this->connection = $this->SCOPE_CONNECTION;
             $this->SCOPE_DATABASE = $this;
-            $this->security = $this->new_Security();
-            $this->connection->initDb($this);
         }
 
 		public function configure($x){

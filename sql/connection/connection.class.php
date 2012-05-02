@@ -4,9 +4,19 @@
 
 		private $link = null;
         private $initDbCallback = null;
-        private $builder = null;
         private $refreshSchemata = false;
         private $cache = null;
+        private $policyCache = array();
+        private $policyCallback = null;
+
+        private static $intents = array(
+            'select' => true, 
+            'insert' => true,
+            'delete' => true,
+            'update' => true
+        );
+
+        public $builder = null;
 
         const CENSORED_PASSWORD = '******';
 
@@ -20,10 +30,7 @@
 			'Data'       => 'Oxygen_SQL_Data',
             'Row'        => 'Oxygen_SQL_Row',
             'DataSet'    => 'Oxygen_SQL_DataSet',
-			'Relations'  => 'Oxygen_SQL_Relations',
-			'Relation'   => 'Oxygen_SQL_Relation',
 			'Builder'    => 'Oxygen_SQL_Builder',
-            'Security'   => 'Oxygen_SQL_Security'
         );
 
         private function registerEntries() {
@@ -31,7 +38,6 @@
                 $this->register($name, $implementation);
             }
             $this->SCOPE_CONNECTION = $this;
-            $this->builder = $this->new_Builder();
         }
 
         public function __construct($config, $refreshSchemata = false) {
@@ -51,6 +57,7 @@
             $this->__assert($this->link, mysql_error());
             $this->cache = $this->SCOPE_CACHE;
             $this->registerEntries();
+            $this->builder = $this->new_Builder();
             $this->rawQuery('set names utf8');
         }
 
@@ -63,18 +70,32 @@
             return $this->host;
         }
 
-        public function initDb($db) {
-            if ($this->initDbCallback !== null) {
-                call_user_func($this->initDbCallback, $db);
+        public function getPolicy($table) {
+            if ($this->policyCallback !== null) {
+                $fullName = $table['database']['name'] . '.' . $table['name'];
+                if (isset($this->policyCache[$fullName])) return $this->policyCache[$fullName];
+                $policy = array();
+                foreach (self::$intents as $intent => $default) {
+                    $policy[$intent] = call_user_func(
+                        $this->policyCallback,
+                        $fullName,
+                        $table,
+                        $intent,
+                        $default
+                    );
+                }
+                return $this->policyCache[$fullName] = $policy;
+            } else {
+                return self::$intents;
             }
         }
 
-        public function setInitDbCallback($callback, $method = null) {
+        public function setPolicyCallback($callback, $method = null) {
             $this->__assert(
-                $this->initDbCallback === null,
-                'Can\'t set initDbCallback twice'
+                $this->policyCallback === null,
+                'Can\'t set policyCallback twice'
             );
-            $this->initDbCallback = ($method === null)
+            $this->policyCallback = ($method === null)
                 ? $callback
                 : array($callback, $method)
             ;
@@ -191,7 +212,7 @@
                 c.TABLE_SCHEMA                                              as `database`,
                 c.TABLE_NAME                                                as `table`,
                 'keys'                                                      as `feature`,
-                c.CONSTRAINT_NAME                                           as `constraint`,
+                c.CONSTRAINT_NAME                                           as `key`,
                 case c.CONSTRAINT_TYPE when 'PRIMARY KEY' then 1 else 0 end as `primary`,
                 u.COLUMN_NAME                                               as `column`
             FROM
@@ -210,7 +231,7 @@
                 c.CONSTRAINT_NAME,
                 u.ORDINAL_POSITION
             ");
-            $path = array('database' => 'tables', 'table' => 'constraints', 'constraint' => '*');
+            $path = array('database' => 'tables', 'table' => 'keys', 'key' => '*');
             while($row = mysql_fetch_assoc($keys)){
                 $this->structurize($row, $path, $this->model['databases']);
             }
@@ -250,9 +271,9 @@
                         $x[$key] = $new;
                     }
                 }
-                $prevObj = &$x;
                 $prevProp = $prop;
                 $x = &$x[$key];
+                $prevObj = &$x;
                 $x = &$x[$collection];
             }
         }

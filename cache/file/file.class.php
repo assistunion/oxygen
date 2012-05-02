@@ -19,7 +19,7 @@
 		}
 
 		public function getPath($key) {
-			$hash = md5($key);
+            $hash = md5($key);
 			$path = $this->temp_path 
 				  . DIRECTORY_SEPARATOR 
 				  . Oxygen_Utils_Text::format(self::FILE_TEMPLATE,$hash)
@@ -77,6 +77,10 @@
 				throw $ex;
 			}
 		}
+        
+        public function echoValue($key) {
+            readfile($this->getPath($key));
+        }
 
 		public function store($key, $value) {
 			$path = $this->getPath($key);

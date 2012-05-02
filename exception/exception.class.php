@@ -108,7 +108,7 @@
                 $this->throwException('getComponentClass() call is valid only within template code');
             } else {
                 $call = &$this->stack[$count-1];
-                if($call[self::COMPONENT] !== false) {
+                if($call[self::COMPONENT] === false) {
                     return $call[self::COMPONENT] = self::componentClassFor(
                         $call[self::CLAZZ],
                         $call[self::RESOURCE]

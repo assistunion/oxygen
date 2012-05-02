@@ -18,7 +18,8 @@
 			'group'  => false,
 			'having' => false,
 			'limit'  => false,
-			'offset' => false
+			'offset' => false,
+			'keys'   => false
 		);
 
 		private $meta = array();

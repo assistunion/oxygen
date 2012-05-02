@@ -56,7 +56,7 @@
                     }
                 }
                 $str = implode(':', $toHash);
-                $this->hash = sha1($str);
+                $this->hash = md5($str);
             }
             return $this->hash;
         }
@@ -98,6 +98,10 @@
                 $this->compiled = true;
             }
             return $this->hash;
+        }
+
+        public function getCompiledUri() {
+            return $this->scope->OXYGEN_ROOT_URI . '/' . $this->compile() . $this->ext;
         }
 
         protected function invalidate() {

@@ -1,3 +1,1 @@
-<style>
-<?=$this->cache[$this->compile()]?>
-</style>
+<link rel="stylesheet" type="text/css" src="<?=$this->getCompiledUri()?>"/>
