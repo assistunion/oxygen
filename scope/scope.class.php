@@ -107,10 +107,14 @@
         public function setServer($SERVER) {
 
             $this->SCOPE_SERVER = $SERVER;
-
-            $root    = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']),'/');
-            $request  = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
             $oxygen  = $this->OXYGEN_ROOT;
+            $root    = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']),'/');
+            if(isset($SERVER['REQUEST_URI'])) {
+                $request = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
+            } else {
+                $request = $oxygen;
+            }
+
             $oxylen  = strlen($oxygen);
             $this->__assert(
                 substr($request, 0, $oxylen) === $oxygen,
