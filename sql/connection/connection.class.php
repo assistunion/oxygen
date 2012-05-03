@@ -110,8 +110,9 @@
 		}
 
 		public function paramQuery($sql, $params = array()) {
-			$sql = preg_replace('/{(.*)}/e',"'\\''.mysql_real_escape_string(\$params['\\1']).'\\''",$sql);
-			return $this->rawQuery($sql);
+            $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
+                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);			
+            return $this->rawQuery($sql);
 		}
 
         public function paramQueryArray($sql, $params = array(), $key = false) {
