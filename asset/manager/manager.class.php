@@ -32,6 +32,11 @@
                     || $if_none_match && $if_none_match != $etag
                     || $if_modified_since && $if_modified_since != $last_modified
                 ) {
+                    switch($type){
+                        case 'css':
+                        case 'less': header('Content-Type: text/css'); break;
+                        case 'js': header('Content-Type: text/javascript'); break;
+                    }
                     $this->scope->SCOPE_CACHE->echoValue($key);
                 } else {
                     header('HTTP/1.0 304 Not Modified');

@@ -11,8 +11,8 @@
     }
 ?>
 <head>
-<?=$this->put_stylesheets()?>
 <?=$this->put_html5shim()?>
+<?=$this->put_stylesheets()?>
 <?=$this->put_javascripts()?>
 </head>
 <body>

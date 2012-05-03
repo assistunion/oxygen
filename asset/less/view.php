@@ -1,1 +1,1 @@
-<link rel="stylesheet" type="text/css" src="<?=$this->getCompiledUri()?>"/>
+<link rel="stylesheet" type="text/css" href="<?=$this->getCompiledUri()?>"/>

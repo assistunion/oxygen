@@ -17,10 +17,10 @@
         public function getInstance($alias) {
             $domain[$alias] = &$this->model;
             return $this->new_DataSet(array(
-                'keys'   => $this->model['keys'],
-                'select' => $this->getPolicyColumns(),
+                'keys'   => $this->getKeys($alias),
+                'select' => $this->getPolicyColumns($alias),
                 'from'   => $domain,
-                'where'  => $this->getPolicyPredicates(),
+                'where'  => $this->getPolicyPredicates($alias),
                 'group'  => false,
                 'having' => false,
                 'order'  => false,
@@ -39,7 +39,7 @@
 
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
-            $x['data']->Data($this->model['data']);
+            //  $x['data']->Data($this->model['data']);
             $x['{name:url}-KEY']->Key($this->model['keys']);
         }
 

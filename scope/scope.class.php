@@ -159,6 +159,13 @@
             return $scope;
         }
 
+        public function authenticated() {
+            if (!$this->has(SCOPE_AUTHENTICATION_INFO)) {
+                $this->SCOPE_AUTHENTICATION_INFO = $this->new_Authenticator;
+            };
+            return $this->SCOPE_AUTHENTICATION_INFO;
+        }  
+
         public function setCommonHttpPrefs($temp) {
             $this->register('Cache','Oxygen_Cache_File');
             $this->register('Connection','Oxygen_SQL_Connection');
