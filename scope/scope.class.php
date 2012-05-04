@@ -38,6 +38,13 @@
             }
         }
 
+        public function registerAll($entries) {
+            foreach($entries as $name => $class) {
+                $this->register($name, $class);
+            }
+        }
+
+
         public function register($name, $class) {
             $this->__assertFreshName($name);
             if($name === self::DEFAULT_FACTORY) {
