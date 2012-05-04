@@ -131,7 +131,7 @@
             $type = strtolower($match[1]);
 
             $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
-                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
+                "'\\1' === '{' ? ('\\''.mysql_real_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
 
             if($type == 'select') return $this->new_ResultSet($sql, $key, $wrapper);
             if($type == 'valueof') {
