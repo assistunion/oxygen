@@ -191,6 +191,19 @@
             $this->setSerializer();
         }
 
+        public function setCommonCliPrefs($temp) {
+            $this->register('Cache','Oxygen_Cache_File');
+            $this->register('Connection','Oxygen_SQL_Connection');
+            $this->TMP_DIR = $temp;
+            $this->SCOPE_CACHE    = $this->new_Cache($temp);
+            $this->setServer($_SERVER);
+            $this->SCOPE_REQUEST  = array();
+            $this->SCOPE_COOKIE   = array();
+            $this->SCOPE_FILES    = array();
+            $this->SCOPE_ENV      = $_ENV;
+        }
+
+
         public static function __class_construct($scope){
             $scope->register('Exception','Oxygen_Exception');
             $scope->register('Scope','Oxygen_Scope');
