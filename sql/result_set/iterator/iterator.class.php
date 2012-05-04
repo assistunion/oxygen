@@ -1,5 +1,5 @@
 <?
-    class SQL_ResultSet_Iterator extends Oxygen_Object implements Iterator {
+    class Oxygen_SQL_ResultSet_Iterator extends Oxygen_Object implements Iterator {
 
         private $current    = null;
         private $data       = null;
@@ -10,11 +10,14 @@
         private $key        = false;
         private $n          = 0;
 
-        public function __construct($sql, $wrapper, $key) {
+        public function __construct($sql, $key, $wrapper) {
             $this->wrapper = $wrapper;
             $this->sql     = $sql;
             $this->key     = $key;
-            $this->connection = $this->SCOPE_CONNECTION;
+        }
+
+        public function __complete() {
+            $this->connection = $this->scope->SCOPE_CONNECTION;
         }
 
         public function current() {
@@ -47,7 +50,7 @@
             if($this->result) mysql_free_result($this->result);
             $this->result = $this->connection->rawQuery($this->sql);
             $this->n = -1;
-            next();
+            $this->next();
         }
 
         public function valid() {

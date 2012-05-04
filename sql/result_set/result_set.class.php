@@ -1,5 +1,5 @@
 <?
-    class SQL_ResultSet extends Oxygen_Object implements IteratorAggregate {
+    class Oxygen_SQL_ResultSet extends Oxygen_Object implements IteratorAggregate {
 
         const COUNT_IS_NOT_KNOWN = -1;
 
@@ -14,7 +14,11 @@
         }
 
         public function getIterator() {
-            return $this->new_DataIterator($this);
+            return $this->new_DataIterator(
+                $this->sql,
+                $this->key,
+                $this->wrapper
+            );
         }
 
     }
