@@ -115,6 +115,50 @@
             }
         }
 
+        // function safeName($name) relies on the assumption
+        // that nobody will use a dot (.) within column names.
+        // Even in escaped form. Also we assume that there are
+        // no escaped leading and trailing spaces.
+        // (If it's the case for you - my regrets!)
+        // So we will treat any dots in names as dots in qualified names.
+        // In case if $name is an array, function produces coma-separated
+        // parentheses enclosed list of safeNames of keys in this array
+        // this is useful when dealing with inserts and replaces
+        private function safeName($name) {
+            if(is_array($name)) {
+                $res = '';
+                foreach ($name as $key => $value) {
+                    $res .= $res === '' ? '(' : ',' ;
+                    $res .= $this->safeName($key);
+                }
+                $res .= $res === '' ? '()' : ')' ;
+                return $res;
+            } else if(!preg_match('/^[A-Z_][\.A-Z0-9_]*$/i', $name)){
+                $pieces = explode('.', $name);
+                foreach($pieces as $i => $piece) {
+                    $pieces[$i] = '`'. str_replace('`', '``', $piece) . '`';
+                }
+                return implode('.', $pieces);
+            } else {
+                return $name;
+            }
+        }
+
+
+        public function safeValue($value) {
+            if(is_array($value)) {
+                $res = '';
+                foreach ($value as $key => $value) {
+                    $res .= $res === '' ? '(' : ',' ;
+                    $res .= $this->safeValue($value);
+                }
+                $res .= $res === '' ? '()' : ')' ;
+                return $res;
+            } else {
+                return '\'' . mysql_real_escape_string($val, $this->link) . '\'';
+            }
+        }
+
         public function runQuery($sql, $params = array(), $key = false, $wrapper = false, $method = false) {
 
             $wrapper = $wrapper === false
@@ -131,7 +175,7 @@
             $type = strtolower($match[1]);
 
             $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
-                "'\\1' === '{' ? ('\\''.mysql_real_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
+                "\$this->{'\\1' === '{' ? 'safeName' : 'safeValue' }(\$params['\\2'])",$sql);
 
             if($type == 'select') return $this->new_ResultSet($sql, $key, $wrapper);
             if($type == 'valueof') {
