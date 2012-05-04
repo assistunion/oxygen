@@ -49,7 +49,7 @@
 
         public function go($path = true, $args = array(), $merge = true) {
             if(is_bool($path)) {
-                return $path 
+                return $path
                     ? $this->path . $this->rawArgs
                     : $this->path
                 ;
@@ -62,7 +62,7 @@
                 $path = '';
             }
             if ($path === '') {
-                $args = $merge 
+                $args = $merge
                     ? array_merge($this->args, $args)
                     : $args
                 ;
@@ -82,7 +82,7 @@
                 }
             }
         }
-        
+
         public function __routed() {
         }
 
@@ -123,7 +123,7 @@
 
 		public function getIterator() {
 			$this->ensureConfigured();
-			return $this->new_Iterator($this->routes, $this->go());
+			return $this->new_ChildrenIterator($this->routes, $this->go());
 		}
 
 		public function offsetUnset($offset){
@@ -153,7 +153,7 @@
             $this->__routed();
             return $match[2];
         }
-        
+
         public function isRoot() {
             return !($this->parent instanceof Oxygen_Controller);
         }
@@ -263,7 +263,7 @@
             $scope->register('Routes','Oxygen_Controller_Routes');
             $scope->register('Configurator','Oxygen_Controller_Configurator');
             $scope->register('Controller','Oxygen_Controller');
-            $scope->register('Iterator','Oxygen_Controller_Iterator');
+            $scope->register('ChildrenIterator','Oxygen_Controller_Iterator');
         }
 
 	}

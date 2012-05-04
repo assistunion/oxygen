@@ -10,7 +10,7 @@
         private $policyCallback = null;
 
         private static $intents = array(
-            'select' => true, 
+            'select' => true,
             'insert' => true,
             'delete' => true,
             'update' => true
@@ -21,24 +21,19 @@
         const CENSORED_PASSWORD = '******';
 
 		private static $implementations = array(
-			'Connection' => 'Oxygen_SQL_Connection',
-			'Database'   => 'Oxygen_SQL_Database',
-			'Table'      => 'Oxygen_SQL_Table',
-			'Columns'    => 'Oxygen_SQL_Columns',
-			'Column'     => 'Oxygen_SQL_Column',
-			'Key'        => 'Oxygen_SQL_Key',
-			'Data'       => 'Oxygen_SQL_Data',
-            'Row'        => 'Oxygen_SQL_Row',
-            'DataSet'    => 'Oxygen_SQL_DataSet',
-			'Builder'    => 'Oxygen_SQL_Builder',
+            'Connection'   => 'Oxygen_SQL_Connection',
+            'Database'     => 'Oxygen_SQL_Database',
+            'Table'        => 'Oxygen_SQL_Table',
+            'Columns'      => 'Oxygen_SQL_Columns',
+            'Column'       => 'Oxygen_SQL_Column',
+            'Key'          => 'Oxygen_SQL_Key',
+            'Data'         => 'Oxygen_SQL_Data',
+            'Row'          => 'Oxygen_SQL_Row',
+            'DataSet'      => 'Oxygen_SQL_DataSet',
+            'Builder'      => 'Oxygen_SQL_Builder',
+            'ResultSet'    => 'Oxygen_SQL_ResultSet',
+            'DataIterator' => 'Oxygen_SQL_ResultSet_Iterator'
         );
-
-        private function registerEntries() {
-            foreach(self::$implementations as $name => $implementation) {
-                $this->register($name, $implementation);
-            }
-            $this->SCOPE_CONNECTION = $this;
-        }
 
         public function __construct($config, $refreshSchemata = false) {
             parent::__construct($config);
@@ -56,7 +51,8 @@
             $this->model['databases'] = array();
             $this->__assert($this->link, mysql_error());
             $this->cache = $this->SCOPE_CACHE;
-            $this->registerEntries();
+            $this->registerAll(self::$implementations);
+            $this->SCOPE_CONNECTION = $this;
             $this->builder = $this->new_Builder();
             $this->rawQuery('set names utf8');
         }
@@ -109,9 +105,68 @@
 			return $result;
 		}
 
+        public function wrapData($data, $wrapper = false) {
+            if ($wrapper === false) {
+                return $data;
+            } else if ($wrapper === true) {
+                return (object)$data;
+            } else {
+                return call_user_func($wrapper, $data);
+            }
+        }
+
+        public function runQuery($sql, $params = array(), $key = false, $wrapper = false, $method = false) {
+
+            $wrapper = $wrapper === false
+                ? false
+                : $method === false
+                ? $wrapper
+                : array($wrapper, $method)
+            ;
+
+            $this->__assert(
+                preg_match("/^(valueof|create|drop|replace|get|select|insert|update|delete)/i", $sql, $match),
+                'Unknown sql-query type'
+            );
+            $type = strtolower($match[1]);
+
+            $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
+                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
+
+            if($type == 'select') return $this->new_ResultSet($sql, $key, $wrapper);
+            if($type == 'valueof') {
+                $sql = preg_replace("/^valueof/i", "select", $sql);
+                $res = $this->rawQuery($sql);
+                $row = mysql_fetch_row($res);
+                mysql_free_result($res);
+                if(!$row) return false;
+                return $row[0];
+            }
+
+            if($type == 'get') {
+                $sql = preg_replace("/^get/i", "select", $sql);
+                $res = $this->rawQuery($sql);
+                $obj = mysql_fetch_assoc($res);
+                mysql_free_result($res);
+                if(!$obj) return false;
+                return $this->wrapData($obj, $wrapper);
+            }
+
+            $this->rawQuery($sql);
+
+            switch($type){
+            case "insert": return mysql_insert_id($this->link);
+            case "replace": return mysql_insert_id($this->link);
+            case "update": return mysql_affected_rows($this->link);
+            case "delete": return mysql_affected_rows($this->link);
+            default:
+                return mysql_affected_rows($this->link);
+            }
+        }
+
 		public function paramQuery($sql, $params = array()) {
             $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
-                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);			
+                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
             return $this->rawQuery($sql);
 		}
 

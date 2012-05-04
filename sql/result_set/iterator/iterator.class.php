@@ -1,15 +1,20 @@
 <?
     class SQL_ResultSet_Iterator extends Oxygen_Object implements Iterator {
 
-        private $sql = "";
-        private $wrapper = null;
-        private $current = null;
-        private $result = null;
-        private $n = 0;
+        private $current    = null;
+        private $data       = null;
+        private $result     = null;
+        private $connection = null;
+        private $sql        = '';
+        private $wrapper    = false;
+        private $key        = false;
+        private $n          = 0;
 
-        public function __construct($sql, $wrapper) {
-            $this->sql = $sql;
-            $this->warpper = $wrapper;
+        public function __construct($sql, $wrapper, $key) {
+            $this->wrapper = $wrapper;
+            $this->sql     = $sql;
+            $this->key     = $key;
+            $this->connection = $this->SCOPE_CONNECTION;
         }
 
         public function current() {
@@ -17,28 +22,36 @@
         }
 
         public function next() {
-            $object = mysql_fetch_object($this->result);
-            if($this->wrapper != Oxygen_SQL::STDCLASS) {
-                $this->current = $this->scope->{$this->$wrapper}($object);
-            } else {
-                $this->current = $object;
+            if ($this->data = mysql_fetch_assoc($this->result)) {
+                $this->current = $this->connection->wrapData(
+                    $this->data,
+                    $this->wrapper
+                );
             }
             $this->n++;
         }
 
         public function key() {
-            return $this->n;
+            if ($this->key === false) return $this->n;
+            if (is_string($this->key)) return $this->data[$this->key];
+            else {
+                $res = array();
+                foreach ($this->key as $key) {
+                    $res[$key] = $this->data[$key];
+                }
+                return $res;
+            }
         }
 
         public function rewind() {
             if($this->result) mysql_free_result($this->result);
-            $this->result = $this->scope->rawQuery($this->sql);
-            $this->current = mysql_fetch_object($this->result);
-            $this->n = 0;
+            $this->result = $this->connection->rawQuery($this->sql);
+            $this->n = -1;
+            next();
         }
 
         public function valid() {
-            return !!$this->current;
+            return !!$this->data;
         }
     }
 ?>
