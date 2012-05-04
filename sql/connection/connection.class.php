@@ -119,9 +119,9 @@
 
             $wrapper = $wrapper === false
                 ? false
-                : $method === false
+                : ($method === false
                 ? $wrapper
-                : array($wrapper, $method)
+                : array($wrapper, $method))
             ;
 
             $this->__assert(
