@@ -98,10 +98,12 @@
         }
 
 		public function rawQuery($sql) {
+            echo $sql;
 			$this->__assert(
 				$result = mysql_query($sql, $this->link),
 				mysql_error($this->link)
 			);
+
 			return $result;
 		}
 
@@ -155,7 +157,7 @@
                 $res .= $res === '' ? '()' : ')' ;
                 return $res;
             } else {
-                return '\'' . mysql_real_escape_string($val, $this->link) . '\'';
+                return '\'' . mysql_real_escape_string($value, $this->link) . '\'';
             }
         }
 
@@ -175,7 +177,8 @@
             $type = strtolower($match[1]);
 
             $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
-                "\$this->{'\\1' === '{' ? 'safeName' : 'safeValue' }(\$params['\\2'])",$sql);
+                "\$this->{'\\1' === '{' ? 'safeValue' : 'safeName' }(\$params[
+                    '\\1' === '{' ? '\\2' : '<\\2>'])",$sql);
 
             if($type == 'select') return $this->new_ResultSet($sql, $key, $wrapper);
             if($type == 'valueof') {
