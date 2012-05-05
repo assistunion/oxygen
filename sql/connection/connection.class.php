@@ -98,7 +98,6 @@
         }
 
 		public function rawQuery($sql) {
-            echo $sql;
 			$this->__assert(
 				$result = mysql_query($sql, $this->link),
 				mysql_error($this->link)
