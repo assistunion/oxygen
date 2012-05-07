@@ -1,6 +1,6 @@
 <?
 
-	class Oxygen_SQL_Connection extends Oxygen_Controller {
+	class Oxygen_SQL_Connection extends Oxygen_ScopeController {
 
 		private $link = null;
         private $initDbCallback = null;
@@ -50,10 +50,10 @@
             $this->model['pass'] = self::CENSORED_PASSWORD;
             $this->model['databases'] = array();
             $this->__assert($this->link, mysql_error());
-            $this->cache = $this->SCOPE_CACHE;
-            $this->registerAll(self::$implementations);
-            $this->SCOPE_CONNECTION = $this;
-            $this->builder = $this->new_Builder();
+            $this->cache = $this->scope->cache;
+            $this->scope->registerAll(self::$implementations);
+            $this->scope->connection = $this;
+            $this->builder = $this->scope->Builder();
             $this->rawQuery('set names utf8');
         }
 
@@ -179,7 +179,7 @@
                 "\$this->{'\\1' === '{' ? 'safeValue' : 'safeName' }(\$params[
                     '\\1' === '{' ? '\\2' : '<\\2>'])",$sql);
 
-            if($type == 'select') return $this->new_ResultSet($sql, $key, $wrapper);
+            if($type == 'select') return $this->scope->ResultSet($sql, $key, $wrapper);
             if($type == 'valueof') {
                 $sql = preg_replace("/^valueof/i", "select", $sql);
                 $res = $this->rawQuery($sql);
@@ -313,7 +313,6 @@
             $keys = $this->rawQuery("SELECT
                 c.TABLE_SCHEMA                                              as `database`,
                 c.TABLE_NAME                                                as `table`,
-                'keys'                                                      as `feature`,
                 c.CONSTRAINT_NAME                                           as `key`,
                 case c.CONSTRAINT_TYPE when 'PRIMARY KEY' then 1 else 0 end as `primary`,
                 u.COLUMN_NAME                                               as `column`

@@ -2,11 +2,13 @@
 
 	class Oxygen_Controller_Configurator extends Oxygen_Object {
 
+		private $controller = null;
 		private $route = '';
 		private $factory = null;
         private $args = null;
 
-		public function __construct($route) {
+		public function __construct($controller, $route) {
+			$this->controller = $controller;
 			$this->route = $route;
 		}
 
@@ -21,7 +23,7 @@
 			$model = isset($args[0])?$args[0]:null;
 			$args[0] = null; // Erase model info;
 			$this->args = $args;
-			return $this->scope->add(
+			return $this->controller->add(
 				array($this, 'getWrapped'),
 				$this->route,
 				$model

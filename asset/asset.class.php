@@ -25,8 +25,8 @@
         }
 
       public function __complete() {
-            $this->cache = $this->scope->SCOPE_CACHE;
-            $this->loader = $this->scope->SCOPE_LOADER;
+            $this->cache = $this->scope->cache;
+            $this->loader = $this->scope->loader;
         }
 
 

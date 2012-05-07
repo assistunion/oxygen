@@ -12,12 +12,12 @@
             $this->__assert(!isset($this->assets[$name]), self::ASSET_REDEFINED, $name);
             $this->assets[$name] = $this->new_($class);
         }
-        
+
         public function handled($path) {
             if (!preg_match('#^/([a-f0-9]{32})\.(js|css|less)$#',$path, $match)) return false;
             $key = $match[1];
             $type = $match[2];
-            if(isset($this->scope->SCOPE_CACHE[$key])){
+            if(isset($this->scope->cache[$key])){
                 $last_modified = 'Tuesday, 1 Mar 2012 00:00:00 GMT';
                 $etag = '"'.$key.'"';
                 header("Last-Modified: $last_modified");
@@ -26,7 +26,7 @@
                     stripslashes($_SERVER['HTTP_IF_MODIFIED_SINCE']) :
                     false;
                 $if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ?
-                    stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : 
+                    stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) :
                     false;
                 if (!$if_modified_since && !$if_none_match
                     || $if_none_match && $if_none_match != $etag
@@ -37,7 +37,7 @@
                         case 'less': header('Content-Type: text/css'); break;
                         case 'js': header('Content-Type: text/javascript'); break;
                     }
-                    $this->scope->SCOPE_CACHE->echoValue($key);
+                    $this->scope->cache->echoValue($key);
                 } else {
                     header('HTTP/1.0 304 Not Modified');
                 }

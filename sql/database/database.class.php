@@ -1,11 +1,11 @@
 <?
-	class Oxygen_SQL_Database extends Oxygen_Controller {
+	class Oxygen_SQL_Database extends Oxygen_ScopeController {
 
         public $connection = null;
 
         public function __complete() {
-            $this->connection = $this->SCOPE_CONNECTION;
-            $this->SCOPE_DATABASE = $this;
+            $this->connection = $this->scope->connection;
+            $this->scope->database = $this;
         }
 
 		public function configure($x){

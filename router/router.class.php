@@ -87,9 +87,9 @@
         public function unwrap($obj){
             return call_user_func($this->unwrap,$obj);
         }
-        
+
         private function url($data, $encode) {
-            return $encode 
+            return $encode
                 ? urldecode($data)
                 : urldecode($data)
             ;
@@ -118,7 +118,7 @@
             foreach($this->params as $name => $config) {
                 list($regexp, $transform) = $config;
                 $value = $this->$transform(
-                    (($this->type === self::ARRAY_TYPE) 
+                    (($this->type === self::ARRAY_TYPE)
                         ? $data
                         : $data[$name]
                     ), true
@@ -179,9 +179,9 @@
         }
 
         public function getIterator() {
-            return $this->new_Oxygen_Router_Iterator($this);
+            return $this->scope->Oxygen_Router_Iterator($this);
         }
-        
+
         private function extractKey($match) {
             $key = array();
             foreach($this->params as $name => $config){

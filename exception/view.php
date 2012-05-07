@@ -1,4 +1,4 @@
-<div class="<?=$this->getComponentClass()?>">
+<div class="<?=$this->getTemplateClass()?>">
 <h1>Exception: <?=$this->getName()?></h1>
 <?$this->put_details()?>
 <?$this->put_stack_trace()?>

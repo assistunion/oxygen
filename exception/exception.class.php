@@ -82,7 +82,7 @@
             $assets = $scope->assets;
             array_push($this->stack, $call);
             try {
-                include $scope->SCOPE_LOADER->pathFor(
+                include $scope->loader->pathFor(
                     $class,
                     $name . Oxygen_Loader::TEMPLATE_EXTENSION
                 );
@@ -98,18 +98,18 @@
             }
         }
 
-        public static function componentClassFor($class,$resource) {
-            return 'css-' . md5($class . '-' . $resource);
+        public static function templateClassFor($class, $resource) {
+            return 'css-' . $class . '-' . $resource;
         }
 
 
-        public final function getComponentClass() {
+        public final function getTemplateClass() {
             if(($count = count($this->stack)) == 0) {
-                $this->throwException('getComponentClass() call is valid only within template code');
+                $this->throwException('getTemplateClass() call is valid only within template code');
             } else {
                 $call = &$this->stack[$count-1];
                 if($call[self::COMPONENT] === false) {
-                    return $call[self::COMPONENT] = self::componentClassFor(
+                    return $call[self::COMPONENT] = self::templateClassFor(
                         $call[self::CLAZZ],
                         $call[self::RESOURCE]
                     );

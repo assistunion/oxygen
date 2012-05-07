@@ -1,6 +1,6 @@
 <?
 
-	class Oxygen_Controller extends Oxygen_Scope
+	class Oxygen_Controller extends Oxygen_Object
         implements Countable, ArrayAccess, IteratorAggregate
     {
 
@@ -19,29 +19,36 @@
 
 		private $configured = false;
 		private $children   = array();
-		private $routes     = array();
 		private $index      = array();
 		private $pattern    = '';
 
         private $rawArgs = '';
         protected $args = array();
 
-		protected $model         = null;
-        protected $count         = false;
+        public $routes = array();
+        public $model  = null;
+        public $parent = null;
+
+        protected $count  = false;
 
         protected $route = '';
         protected $path = '';
+
+        private static $implementations = array(
+            'Router'           => 'Oxygen_Router',
+            'Routes'           => 'Oxygen_Controller_Routes',
+            'Configurator'     => 'Oxygen_Controller_Configurator',
+            'Controller'       => 'Oxygen_Controller',
+            'ChildrenIterator' => 'Oxygen_Controller_Iterator'
+        );
 
 		public function __construct($model = null){
 			$this->model = $model;
 		}
 
-		public function __depend($scope){
-            parent::__depend($scope);
-            if($this->isRoot()) {
-                $this->path = $scope->OXYGEN_ROOT_URI;
-            }
-		}
+        public static function __class_construct($scope) {
+            $scope->registerAll(self::$implementations);
+        }
 
 		public function getModel() {
 			return $this->model;
@@ -76,7 +83,7 @@
                     : ''
                 );
                 if ($path{0} === '/') {
-                    return $this->OXYGEN_ROOT_URI . $path . $args;
+                    return $this->scope->OXYGEN_ROOT_URI . $path . $args;
                 } else {
                     return $this->path . $this->rawArgs . '/' . $path . $args;
                 }
@@ -87,7 +94,7 @@
         }
 
 		public function routeExists($route) {
-            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$route, $match)) {;
+            if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#', $route, $match)) {;
                 switch($route){
                 case '': return true;
                 case '.': return true;
@@ -123,7 +130,7 @@
 
 		public function getIterator() {
 			$this->ensureConfigured();
-			return $this->new_ChildrenIterator($this->routes, $this->go());
+			return $this->scope->ChildrenIterator($this);
 		}
 
 		public function offsetUnset($offset){
@@ -144,18 +151,27 @@
             $this->args = $array;
         }
 
-        public function shiftRoute($path, $route, $rest){
+        public function setPath($parent, $route = '', $rest = ''){
             preg_match(self::ARG_EXTRACT_REGEXP, $rest, $match);
+            $this->parent = $parent;
             $this->rawArgs = $match[1];
             $this->route = $route;
-            $this->path = $path . '/' .  $route;
+            if (is_string($parent)) {
+                $path = $parent;
+                $this->parent = null;
+            } else {
+                $path = $parent->path;
+                $this->parent = $parent;
+            }
+            if($route !== '') $this->path = $path . '/' . $route;
+            else $this->path = $path;
             $this->parseArgs();
             $this->__routed();
             return $match[2];
         }
 
         public function isRoot() {
-            return !($this->parent instanceof Oxygen_Controller);
+            return $this->parent === null;
         }
 
         public function offsetGet($offset) {
@@ -178,6 +194,10 @@
                 $result = false;
                 return false;
             }
+        }
+
+        public function handleHttpRequest() {
+
         }
 
         private function evalOffset($offset) {
@@ -211,7 +231,7 @@
             }
             $this->__assert($router !== null);
             $next = $router[$actual];
-            $rest = $next->shiftRoute($this->path, $actual, $rest);
+            $rest = $next->setPath($this, $actual, $rest);
             return ($rest === '')
                 ? $next
                 : $next[$rest]
@@ -242,14 +262,14 @@
 		public function add($class, $route, $model) {
             $index = count($this->routes) + 1;
             $this->index[$index] = $route;
-			return $this->routes[$route] = $this->new_Router(
+			return $this->routes[$route] = $this->scope->Router(
 				$route, $model, $class, self::UNWRAP_METHOD
 			);
 		}
 
 		public function ensureConfigured() {
 			if(!$this->configured){
-				$routes = $this->new_Routes();
+				$routes = $this->scope->Routes($this);
 				$this->configure($routes);
 			    $this->postConfigure();
 			}
@@ -258,13 +278,6 @@
 		public function configure($routes) {
         }
 
-        public static function __class_construct($scope) {
-            $scope->register('Router','Oxygen_Router');
-            $scope->register('Routes','Oxygen_Controller_Routes');
-            $scope->register('Configurator','Oxygen_Controller_Configurator');
-            $scope->register('Controller','Oxygen_Controller');
-            $scope->register('ChildrenIterator','Oxygen_Controller_Iterator');
-        }
 
 	}
 

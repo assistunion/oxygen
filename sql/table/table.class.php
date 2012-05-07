@@ -1,6 +1,6 @@
 <?
 
-    class Oxygen_SQL_Table extends Oxygen_Controller {
+    class Oxygen_SQL_Table extends Oxygen_ScopeController {
 
     	public $connection = null;
     	public $database = null;
@@ -16,7 +16,7 @@
 
         public function getInstance($alias) {
             $domain[$alias] = &$this->model;
-            return $this->new_DataSet(array(
+            return $this->scope->DataSet(array(
                 'keys'   => $this->getKeys($alias),
                 'select' => $this->getPolicyColumns($alias),
                 'from'   => $domain,
@@ -44,12 +44,12 @@
         }
 
         public function __complete() {
-        	$this->database = $this->SCOPE_DATABASE;
+        	$this->database = $this->scope->database;
         	$this->connection = $this->database->connection;
             $this->policy = $this->connection->getPolicy($this->model);
-        	$this->SCOPE_TABLE = $this;
+        	$this->scope->table = $this;
         }
-        
+
 
     }
 

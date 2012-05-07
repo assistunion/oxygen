@@ -1,7 +1,7 @@
 <?
 
     class Oxygen_Object {
-        
+
         const OBJECT_CLASS    = 'Oxygen_Object';
         const EXCEPTION_CLASS = 'Oxygen_Exception';
         const SCOPE_CLASS     = 'Oxygen_Scope';
@@ -62,7 +62,7 @@
             $assets = $scope->assets;
             array_push($this->stack, $call);
             try {
-                include $scope->SCOPE_LOADER->pathFor(
+                include $scope->loader->pathFor(
                     $class,
                     $name . Oxygen_Loader::TEMPLATE_EXTENSION
                 );
@@ -78,18 +78,18 @@
             }
         }
 
-        public static function componentClassFor($class,$resource) {
-            return 'css-' . md5($class . '-' . $resource);
+        public static function templateClassFor($class,$resource) {
+            return 'css-' . $class . '-' . $resource;
         }
 
 
-        public final function getComponentClass() {
+        public final function getTemplateClass() {
             if(($count = count($this->stack)) == 0) {
-                $this->throwException('getComponentClass() call is valid only within template code');
+                $this->throwException('getTemplateClass() call is valid only within template code');
             } else {
                 $call = &$this->stack[$count-1];
                 if($call[self::COMPONENT] === false) {
-                    return $call[self::COMPONENT] = self::componentClassFor(
+                    return $call[self::COMPONENT] = self::templateClassFor(
                         $call[self::CLAZZ],
                         $call[self::RESOURCE]
                     );
@@ -120,7 +120,7 @@
 
         public function __complete() {
         }
-        
+
         public static function __class_construct($scope) {
             /* Intentionally left blank. No code here */
         }
@@ -128,7 +128,7 @@
         public function __depend($scope) {
             $this->scope = $scope;
         }
-        
+
         // Small inheritance hack:
         // Let system think that EXCEPTION_CLASS
         // is inherited from OBJECT_CLASS (not from Exception)
@@ -138,7 +138,7 @@
                 : get_parent_class($class)
             ;
         }
-        
+
         public static function isOxygenClass($class) {
             return (is_subclass_of($class, self::OBJECT_CLASS)
             || is_subclass_of($class, self::EXCEPTION_CLASS)

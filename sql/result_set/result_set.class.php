@@ -14,7 +14,7 @@
         }
 
         public function getIterator() {
-            return $this->new_DataIterator(
+            return $this->scope->DataIterator(
                 $this->sql,
                 $this->key,
                 $this->wrapper

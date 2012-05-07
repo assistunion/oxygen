@@ -3,7 +3,6 @@
     class Oxygen_Scope extends Oxygen_Object {
 
         const FACTORY_REDEFINED = 'Factory {0} is redefined in this scope';
-        const DEFAULT_FACTORY = 'Oxygen_Factory_Class';
 
         const STATIC_CONSTRUCTOR = '__class_construct';
 
@@ -11,25 +10,62 @@
         private $introduced = array();
         protected $parent = null;
 
+        private static $defaultEnvironment = array(
+            'TMP_DIR' => '/tmp',
+            'SERVER'  => array(),
+            'COOKIE'  => array(),
+            'REQUEST' => array(),
+            'FILES'   => array(),
+            'ENV'     => array(),
+            'GET'     => array(),
+            'POST'    => array()
+        );
+        
+        public function throw_Exception($message) {
+            throw $this->Exception($message);
+        }
+
+        private static $implementations = array(
+            'InstanceFactory'  => 'Oxygen_Factory_Instance',
+            'CallableFactory'  => 'Oxygen_Factory_Callable',
+            'Exception'        => 'Oxygen_Exception',
+            'ExceptionWrapper' => 'Oxygen_Exception_Wrapper',
+            'Scope'            => 'Oxygen_Scope',
+            'AssetManager'     => 'Oxygen_Asset_Manager',
+            'LibraryManager'   => 'Oxygen_Lib',
+            // 'ClassFactory'     => 'Oxygen_Factory_Class'  -- REGISTERED AUTOMATICALLY
+        );
+
+        public static function __class_construct($scope){
+            $scope->null = null;
+            $scope->assets = $scope->AssetManager();
+            $scope->lib = $scope->LibraryManager();
+        }
+
+
         public function __depend($scope){
             $this->scope = $this;
             $this->parent = $scope;
         }
 
         private function __assertFreshName($name){
-            $this->__assert(!isset($this->entries[$name]), self::FACTORY_REDEFINED, $name);
+            $this->__assert(
+                !isset($this->entries[$name]),
+                self::FACTORY_REDEFINED,
+                $name
+            );
         }
 
         public function callable($name, $callable) {
             $this->__assertFreshName($name);
-            return $this->entries[$name] = $this->new_Oxygen_Factory_Callable($callable);
+            return $this->entries[$name] = $this->CallableFactory($callable);
         }
 
-        public function introduce($class) {
+        public function __introduce($class) {
             if (self::isOxygenClass($class)
             && !isset($this->introduced[$class])
             ) {
-                $this->introduce(self::getOxygenParentClass($class));
+                $this->__introduce(self::getOxygenParentClass($class));
                 $constructor = new ReflectionMethod($class, self::STATIC_CONSTRUCTOR);
                 $this->introduced[$class] = true;
                 if ($constructor->getDeclaringClass()->getName() === $class) {
@@ -44,23 +80,14 @@
             }
         }
 
-
         public function register($name, $class) {
             $this->__assertFreshName($name);
-            if($name === self::DEFAULT_FACTORY) {
-                // Manually registering class factory to prevent infinite recursion
-                $factory = new $class($class);
-                $factory->__depend($this);
-                $factory->__complete();
-                return $this->entries[$name] = $factory;
-            } else {
-                return $this->entries[$name] = $this->new_Oxygen_Factory_Class($class);
-            }
+            return $this->entries[$name] = $this->ClassFactory($class);
         }
 
         public function instance($name, $instance) {
             $this->__assertFreshName($name);
-            return $this->entries[$name] = $this->new_Oxygen_Factory_Instance($instance);
+            return $this->entries[$name] = $this->InstanceFactory($instance);
         }
 
         public function resolve($name, $autoregister = true) {
@@ -90,38 +117,35 @@
         public function __set($name, $value) {
             $this->instance($name, $value);
         }
-        
+
         public function __call($name, $args) {
-            if(preg_match(self::CALL_REGEXP, $name, $match)) {
-                $class = get_class($this);
-                if ($match[1] !== '') $class = get_parent_class($this);
-                return $this->{$match[2]}($match[3],$args);            
-            } else {
-                return $this->resolve($name, false)->getInstance($args);
-            }
+            return $this->resolve($name, true)->getInstance($args, $this);
         }
 
         // Wraps given $exception into Oxygen_Exception_Wrapper
         // unless $exception is instance of Oxygen_Excpeion itself
-        public function wrapException($exception) {
+        public function __wrapException($exception) {
             if ($exception instanceof Oxygen_Excpeion) {
                 return $exception;
             } else {
-                return $this->new_Oxygen_Exception_Wrapper($exception);
+                return $this->ExceptionWrapper($exception);
             }
         }
 
-        public function setServer($SERVER) {
-
-            $this->SCOPE_SERVER = $SERVER;
+        public function __setPaths() {
             $oxygen  = $this->OXYGEN_ROOT;
-            $root    = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $SERVER['DOCUMENT_ROOT']),'/');
-            if(isset($SERVER['REQUEST_URI'])) {
-                $request = $root . str_replace('/', DIRECTORY_SEPARATOR, $SERVER['REQUEST_URI']);
+            if (isset($this->SERVER['DOCUMENT_ROOT'])) {
+                $root = $this->SERVER['DOCUMENT_ROOT'];
+                $root = rtrim(str_replace('/', DIRECTORY_SEPARATOR, $root),'/');
+            } else {
+                $root = '';
+            }
+            if(isset($this->SERVER['REQUEST_URI'])) {
+                $request = $this->SERVER['REQUEST_URI'];
+                $request = $root . str_replace('/', DIRECTORY_SEPARATOR, $request);
             } else {
                 $request = $oxygen;
             }
-
             $oxylen  = strlen($oxygen);
             $this->__assert(
                 substr($request, 0, $oxylen) === $oxygen,
@@ -144,72 +168,68 @@
             $this->QUERY_STRING = $qs;
         }
 
-        public function setStandardAssets() {
+        public function __setAssets() {
             $a = $this->assets;
             $a->register('css','Oxygen_Asset_CSS');
             $a->register('less','Oxygen_Asset_LESS');
             $a->register('js','Oxygen_Asset_JS');
         }
-
-        public function setSerializer() {
-            $serializer = $this->serializer = $this->new_Oxygen_Serializer();
-            $this->callable('serialize',array($serializer,'add'));
-        }
-
-        public static function newRoot($classRoot) {
-            $scope = new Oxygen_Scope();
-            $scope->__depend($scope);
-            $scope->__complete();
-            $loader = new Oxygen_Loader($classRoot);
-            $loader->__depend($scope);
+        
+        public function __bootstrap($root) {
+            
+            $this->__depend($this);
+            $this->__complete();
+            
+            $factory = new Oxygen_Factory_Class('Oxygen_Factory_Class');
+            $factory->__depend($this);
+            $factory->__complete();
+            
+            $loader = new Oxygen_Loader($root);
+            $loader->__depend($this);
             $loader->__complete();
-            $loader->register();
-            $scope->SCOPE_LOADER = $loader;
-            $scope->OXYGEN_ROOT = $classRoot;
-            $scope->introduce(self::SCOPE_CLASS);
-            return $scope;
+            
+            $loader->register();            
+            $this->entries['ClassFactory'] = $factory;
+            
+            $this->registerAll(self::$implementations);
+            
+            $this->loader = $loader;
+            $this->OXYGEN_ROOT = $root;
+            
+            $this->__introduce(get_class($this));
+            $this->__introduce('Oxygen_Factory_Class');
+            $this->__introduce('Oxygen_Loader');
+            
+            return $this;
         }
 
-        public function authenticated() {
-            if (!$this->has(SCOPE_AUTHENTICATION_INFO)) {
-                $this->SCOPE_AUTHENTICATION_INFO = $this->new_Authenticator;
+        public static function newRoot($root) {
+            $scope = new Oxygen_Scope();
+            return $scope->__bootstrap($root);
+        }
+
+        public function __authenticated() {
+            if (!$this->has('AUTHENTICATION_INFO')) {
+                $this->AUTHENTICATION_INFO = $this->Authenticator();
             };
-            return $this->SCOPE_AUTHENTICATION_INFO;
-        }  
-
-        public function setCommonHttpPrefs($temp) {
-            $this->register('Cache','Oxygen_Cache_File');
-            $this->register('Connection','Oxygen_SQL_Connection');
-            $this->TMP_DIR = $temp;
-            $this->SCOPE_CACHE    = $this->new_Cache($temp);
-            $this->setServer($_SERVER);
-            $this->setStandardAssets();
-            $this->SCOPE_REQUEST  = $_REQUEST;
-            $this->SCOPE_COOKIE   = $_COOKIE;
-            $this->SCOPE_FILES    = $_FILES;
-            $this->SCOPE_ENV      = $_ENV;
-            $this->setSerializer();
+            return $this->AUTHENTICATION_INFO;
         }
 
-        public function setCommonCliPrefs($temp) {
+        public function __setEnvironment($env) {
+            $env = array_merge(self::$defaultEnvironment, $env);
+            $temp = $this->TMP_DIR = $env['TMP_DIR'];
+            $this->SERVER  = $env['SERVER'];
+            $this->REQUEST = $env['REQUEST'];
+            $this->COOKIE  = $env['COOKIE'];
+            $this->FILES   = $env['FILES'];
+            $this->ENV     = $env['ENV'];
+
             $this->register('Cache','Oxygen_Cache_File');
             $this->register('Connection','Oxygen_SQL_Connection');
-            $this->TMP_DIR = $temp;
-            $this->SCOPE_CACHE    = $this->new_Cache($temp);
-            $this->setServer($_SERVER);
-            $this->SCOPE_REQUEST  = array();
-            $this->SCOPE_COOKIE   = array();
-            $this->SCOPE_FILES    = array();
-            $this->SCOPE_ENV      = $_ENV;
-        }
 
-
-        public static function __class_construct($scope){
-            $scope->register('Exception','Oxygen_Exception');
-            $scope->register('Scope','Oxygen_Scope');
-            $scope->null = null;
-            $scope->assets = $scope->new_Oxygen_Asset_Manager();
-            $scope->lib = $scope->new_Oxygen_Lib();
+            $this->__setPaths();
+            $this->cache = $this->Cache($temp);
+            $this->__setAssets();
         }
 
     }

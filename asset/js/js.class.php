@@ -1,10 +1,13 @@
 <?
 
     class Oxygen_Asset_JS extends Oxygen_Asset {
-        
-        const JQUERY_WRAPPER = 'jQuery(function($){var componentClass="body";{0}});';
-        const JQUERY_VIRTUAL_WRAPPER = 'jQuery(function($){var componentClass=".{1}";{0}});';
 
+        const JQUERY_WRAPPER = 'jQuery(function($){
+            var templateClass="{0}"
+              , componentClass="{1}"
+              , templateName="{2}";
+              {3}
+        })';
         public function __construct() {
             parent::__construct('.js');
         }
@@ -14,13 +17,13 @@
         		return $source;
         	} else {
                 return Oxygen_Utils_Text::format(
-                    $asset->component !== false
-                    ? self::JQUERY_VIRTUAL_WRAPPER
-                    : self::JQUERY_WRAPPER,
-                    $source,
-                    $asset->component
+                    self::JQUERY_WRAPPER,
+                    $asset->component !== false ? '.' . $asset->component : 'body',
+                    $asset->class,
+                    $asset->name,
+                    $source
                 );
-            }        		
+            }
         }
     }
 

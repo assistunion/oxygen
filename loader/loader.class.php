@@ -55,7 +55,7 @@
                     $class
                 );
             }
-            $this->scope->introduce($class);
+            $this->scope->__introduce($class);
             $this->loaded[$class] = true;
         }
 

@@ -2,20 +2,20 @@
 
 	class Oxygen_Controller_Iterator extends Oxygen_Object implements Iterator {
 
-		private $routers = null;
-        private $path = '';
+		private $controller = null;
+		private $routes = null;
 		private $internal = null;
 		private $key = null;
 
-		public function __construct($routers, $path) {
-			$this->routers = $routers;
-            $this->path = $path;
+		public function __construct($controller) {
+			$this->controller = $controller;
+			$this->routes = $controller->routes;
 		}
 
 		public function valid() {
 			if ($this->internal === null) return false;
 			if ($this->internal->valid()) return true;
-			while ($r = next($this->routers)) {
+			while ($r = next($this->routes)) {
 				$this->internal = $r->getIterator();
 				if($this->internal->valid()) return true;
 			}
@@ -25,10 +25,10 @@
 
 		public function current() {
 			$key = $this->key();
-			if(!$this->scope->tryOffsetCache($key,$current)) {
+			if(!$this->controller->tryOffsetCache($key,$current)) {
 	            $current = $this->internal->current();
-    	        $current->shiftRoute($this->path, $key,'');
-    	        $this->scope->setOffsetCache($key,$current);
+    	        $current->setPath($this->controller, $key,'');
+    	        $this->controller->setOffsetCache($key,$current);
 			}
 			return $current;
 		}
@@ -47,8 +47,8 @@
 		}
 
 		public function rewind(){
-			reset($this->routers);
-			if($r = current($this->routers)){
+			reset($this->routes);
+			if($r = current($this->routes)){
 				$this->internal = $r->getIterator();
 			} else {
 				$this->internal = null;

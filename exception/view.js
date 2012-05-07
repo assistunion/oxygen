@@ -1,4 +1,4 @@
-$(componentClass).each(function(){
+$(templateClass).each(function(){
 	var $exception = $(this);
 	$exception.find('table.trace tr').each(function(){
 		var $tr = $(this);
