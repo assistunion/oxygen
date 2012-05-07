@@ -17,7 +17,7 @@
         }
 
         public function __complete() {
-            $this->connection = $this->scope->SCOPE_CONNECTION;
+            $this->connection = $this->scope->connection;
         }
 
         public function current() {

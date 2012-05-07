@@ -32,7 +32,7 @@
 
 		public function __construct($meta) {
 			$meta = array_merge(self::$defaults, $meta);
-			$this->connection = $this->SCOPE_CONNECTION;
+			$this->connection = $this->scope->connection;
 		}
 
 	}
