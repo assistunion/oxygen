@@ -22,13 +22,10 @@
 			list($type, $value) = $parsed;
 			$this->__assert($type === 'keyword', 'Invalid icon code');
 			$this->__assert(preg_match("/^[a-z_]+$/", $value), 'Invalid icon code');
-			$relative = 'silk-icons/icons/' . $value . '.png';
-			$path = $this->scope->lib->path($relative);
-			$this->__assert(file_exists($path),'Icon not found');
-			return Oxygen_Utils_Text::format(
-				self::CSS_URL,
-				$this->scope->lib->url($relative)
-			);
+            return Oxygen_Utils_Text::format(
+                self::CSS_URL,
+                $this->scope->assets->getIcon($value)
+            );
 		}
 
 		public function resource($parsed) {

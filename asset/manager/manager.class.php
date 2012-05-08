@@ -8,6 +8,13 @@
         private $assets = array();
         private $added = array();
 
+        public function getIcon($name){
+            $relative = 'silk-icons/icons/' . $name . '.png';
+            $path = $this->scope->lib->path($relative);
+            $this->__assert(file_exists($path),'Icon not found');
+            return $this->scope->lib->url($relative);
+        }
+
         public function register($name, $class){
             $this->__assert(!isset($this->assets[$name]), self::ASSET_REDEFINED, $name);
             $this->assets[$name] = $this->new_($class);

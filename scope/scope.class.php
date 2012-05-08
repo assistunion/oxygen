@@ -13,6 +13,7 @@
         private static $defaultEnvironment = array(
             'TMP_DIR' => '/tmp',
             'SERVER'  => array(),
+            'SESSION' => array(),
             'COOKIE'  => array(),
             'REQUEST' => array(),
             'FILES'   => array(),
@@ -219,6 +220,7 @@
             $env = array_merge(self::$defaultEnvironment, $env);
             $temp = $this->TMP_DIR = $env['TMP_DIR'];
             $this->SERVER  = $env['SERVER'];
+            $this->SESSION = $env['SESSION'];
             $this->REQUEST = $env['REQUEST'];
             $this->COOKIE  = $env['COOKIE'];
             $this->FILES   = $env['FILES'];

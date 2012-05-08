@@ -43,12 +43,21 @@
             'Routes'           => 'Oxygen_Controller_Routes',
             'Configurator'     => 'Oxygen_Controller_Configurator',
             'Controller'       => 'Oxygen_Controller',
+            'Dummy'            => 'Oxygen_Controller_Dummy',
             'ChildrenIterator' => 'Oxygen_Controller_Iterator'
         );
 
 		public function __construct($model = null){
 			$this->model = $model;
 		}
+
+        public function getIconSource() {
+            return $this->scope->assets->getIcon($this->getIcon());
+        }
+
+        public function getIcon() {
+            return 'bullet_green';
+        }
 
         public static function __class_construct($scope) {
             $scope->registerAll(self::$implementations);
@@ -77,7 +86,7 @@
 
         public function handleGet() {
             $first = $this->makeCurrent();
-            return htmlResponse(array($this,'put_page_view'));
+            return htmlResponse(array($first,'put_page_view'));
         }
 
         public function post() {
@@ -103,7 +112,6 @@
         }
 
         public function handleRequest() {
-            $root = $this->makeCurrent();
             $method = $this->scope->SERVER['REQUEST_METHOD'];
             switch($method){
             case 'GET': return $this->handleGet();

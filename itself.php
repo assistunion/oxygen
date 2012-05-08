@@ -55,7 +55,7 @@
     }
 
 
-    function handleHttpRequest($scope, $root, $debug = true) {
+    function handleHttpRequest($scope, $root, $model = false, $debug = true) {
 	    $scope->__setEnvironment(array(
 	        'SERVER'    => $_SERVER,
 	        'REQUEST'   => $_REQUEST,
@@ -63,12 +63,13 @@
 	        'COOKIE'    => $_COOKIE,
 	        'POST'      => $_POST,
 	        'GET'       => $_GET,
-	        'FILES'     => $_FILES
+	        'FILES'     => $_FILES,
+	        'SESSION'   => &$_SESSION
 	    ));
 	    try {
 	        if ($scope->assets->handled($scope->OXYGEN_PATH_INFO)) exit;
 	        $userScope = $scope->Scope();
-	        $root = $userScope->$root();
+	        $root = $userScope->$root($model);
 	        $scope->httpStatus = 200;
 			$scope->httpHeaders = array();	        
 	        $root->setPath($scope->OXYGEN_ROOT_URI);
