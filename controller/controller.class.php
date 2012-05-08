@@ -29,6 +29,10 @@
         public $model  = null;
         public $parent = null;
 
+        public $isCurrent = false;
+        public $isActive = false;
+        public $child = false;
+
         protected $count  = false;
 
         protected $route = '';
@@ -53,6 +57,96 @@
 		public function getModel() {
 			return $this->model;
 		}
+
+        public function deactivate() {
+            $this->isActive = false;
+            $this->isCurrent = false;
+            if ($this->parent) $this->parent->deactivate();
+        }
+
+        public function activate() {
+            $this->isActive = true;
+            $this->isCurrent = false;
+            if ($this->parent) {
+                $this->parent->child = $this;
+                return $this->parent->activate();
+            } else {
+                return $this;
+            }
+        }
+
+        public function handleGet() {
+            $first = $this->makeCurrent();
+            return htmlResponse(array($this,'put_page_view'));
+        }
+
+        public function post() {
+            return redirectResponse(array($this->go()));
+        }
+
+        public function handleRPC($method, $args) {
+            $this->__assert(false,
+                'Remote method {0} is not allowed',
+                $method
+            );
+        }
+
+        public function handlePost() {
+            $SERVER = $this->scope->SERVER;
+            if(isset($SERVER['HTTP_X_OXYGEN_RPC'])) {
+                $method = $SERVER['HTTP_X_OXYGEN_JSON_RPC'];
+                $args = json_decode(file_get_contents('php://input'));
+                return $this->handleRPC($method,$args);
+            } else {
+                return $this->post();
+            }
+        }
+
+        public function handleRequest() {
+            $root = $this->makeCurrent();
+            $method = $this->scope->SERVER['REQUEST_METHOD'];
+            switch($method){
+            case 'GET': return $this->handleGet();
+            case 'POST': return $this->handlePost();
+            default:
+                $this->__assert(
+                    false,
+                    'Unknown method {0}',
+                     $method
+                );
+            }
+        }
+
+        public function getCurrent() {
+            if($this->isCurrent) {
+                $this->__assert($this->isActive, 'Must be active');
+                 return $this;
+            } if ($this->isActive) {
+                $this->__assert($this->child, 'Must have child');
+                return $this->child->getCurrent();
+            } else {
+                if($this->parent) {
+                    $this->__assert($this->parent->child !== $this, 'Cyclic activity');
+                    return $this->parent->getCurrent();
+                } else {
+                    $this->isActive = true;
+                    $this->isCurrent = true;
+                    return $this;
+                }
+            }
+            
+            if ($this->isCurrent)
+            $this->__assert($this->child, 'Child must be selected');
+            return $this->child->getCurrent();
+        }
+
+
+        public function makeCurrent() {
+            $this->getCurrent()->deactivate();
+            $root = $this->activate();
+            $this->isCurrent = true;
+            return $root;
+        }
 
         public function go($path = true, $args = array(), $merge = true) {
             if(is_bool($path)) {
