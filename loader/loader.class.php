@@ -85,6 +85,16 @@
             return $class;
         }
 
+        public function urlFor(
+            $class,
+            $resource
+        ) {
+            $path = $this->pathFor($class, $resource, false);
+            $url = str_replace($this->scope->DOCUMENT_ROOT, '', $path);
+            $url = str_replace(DIRECTORY_SEPARATOR, '/', $url);
+            return $url;
+        }
+
         public function pathFor(
             $class,
             $resource = false,

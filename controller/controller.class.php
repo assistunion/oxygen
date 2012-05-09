@@ -84,13 +84,34 @@
             }
         }
 
+        public function getPathToCurrent() {
+            $result = array();
+            $x = $this;
+            while($x) {
+                $result[] = $x;
+                $x = $x->child;
+            }
+            return $result;
+        }
+
+        public function getPathToRoot() {
+            $result = array();
+            $x = $this;
+            while($x) {
+                $result[] = $x;
+                $x = $x->parent;
+            }
+            return $result;
+        }
+
         public function handleGet() {
             $first = $this->makeCurrent();
             return htmlResponse(array($first,'put_page_view'));
         }
 
         public function post() {
-            return redirectResponse(array($this->go()));
+            $location = $this->go();
+            return redirectResponse($location);
         }
 
         public function handleRPC($method, $args) {
@@ -225,6 +246,7 @@
                 foreach($this->routes as $router) {
                     $this->count += count($router);
                 }
+                return $this->count;
             } else {
                 return $this->count;
             }
@@ -298,10 +320,6 @@
             }
         }
 
-        public function handleHttpRequest() {
-
-        }
-
         private function evalOffset($offset) {
             if (preg_match('#^((?:(\.)|(\.\.)|/(.*))(/.*$|$)|$)#',$offset, $match)) {;
                 switch($offset){
@@ -332,7 +350,12 @@
                 }
             }
             $this->__assert($router !== null);
-            $next = $router[$actual];
+            if(isset($this->children[$actual])) {
+                $next = $this->children[$actual];
+            } else {
+                $next = $router[$actual];
+                $this->children[$actual] = $next;
+            }
             $rest = $next->setPath($this, $actual, $rest);
             return ($rest === '')
                 ? $next

@@ -64,7 +64,7 @@
 	        'POST'      => $_POST,
 	        'GET'       => $_GET,
 	        'FILES'     => $_FILES,
-	        'SESSION'   => &$_SESSION
+	        'SESSION'   => $scope->Session()
 	    ));
 	    try {
 	        if ($scope->assets->handled($scope->OXYGEN_PATH_INFO)) exit;
@@ -83,7 +83,7 @@
 	        	header($h);
 	        }
 	        $body = $result['body'];
-	        if($body !== false) {
+	        if($body) {
 	        	if(is_string($body)) echo $body;
 	        	else call_user_func($body);
 	        }

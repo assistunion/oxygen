@@ -29,11 +29,14 @@
 		}
 
 		public function resource($parsed) {
-			//die(print_r($parsed,true));
+			$resource = trim($parsed[2][0][1],'\'');
+			$class = trim($parsed[2][1][1],'\'');
+			return 'url('.$this->scope->loader->urlFor($class, $resource).')';
 		}
 
 		public function processOne($asset) {
 			$source = parent::processOne($asset);
+			$source = preg_replace("/resource\((.*)\)/", "virtual(\\1,'{$asset->class}')", $source);
 			if($asset->component !== false){
 				return Oxygen_Utils_Text::format(
 					self::VIRTUAL_WRAPPER,

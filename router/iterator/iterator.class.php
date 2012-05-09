@@ -12,7 +12,7 @@
             if (is_array($data)) {
                 $data = new ArrayObject($data);
                 $this->useKeys = true;
-            }
+            } 
             $this->internal = $data->getIterator();
         }
 

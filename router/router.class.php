@@ -14,7 +14,7 @@
 
         const SINGLE     = 0;
         const COLLECTION = 1;
-        const ARRAY_TYPE = 2;
+        const ARRAY_TYPE = 2; 
 
         const INVALID_PARAM_TYPE = 'Invalid parameter type {0}';
 
@@ -26,6 +26,8 @@
         private $params = array();
         private $parseTransform = array();
         private $formatTransform = array();
+        private $autoPopulate = false;
+        private $autoRoute = '';
 
         public function setWrap($wrap, $method = false) {
             if($method !== false) {
@@ -118,7 +120,7 @@
             foreach($this->params as $name => $config) {
                 list($regexp, $transform) = $config;
                 $value = $this->$transform(
-                    (($this->type === self::ARRAY_TYPE)
+                    (($this->type === self::ARRAY_TYPE || $this->autoPopulate)
                         ? $data
                         : $data[$name]
                     ), true
@@ -154,16 +156,24 @@
 
         public function offsetExists($offset) {
             if (!$this->matchKey($offset, $key)) return false;
-            return isset($this->data[$key]);
+            return $this->autoPopulate || isset($this->data[$key]);
         }
 
         //TODO: Change return mode to reference on php 5.3.4+
         public function offsetGet($offset) {
-            return $this->wrap(
-                $this->data[
-                    $this->parseKey($offset)
-                ]
-            );
+            if ($this->autoPopulate) {
+                $key = $this->parseKey($offset);
+                if(!isset($this->data[$offset])) {
+                    $this->data[$offset] = $this->wrap($key);
+                }               
+                return $this->data[$offset];
+            } else {
+                return $this->wrap(
+                    $this->data[
+                        $this->parseKey($offset)
+                    ]
+                );
+            }
         }
 
         public function offsetSet($offset, $value) {
@@ -175,10 +185,20 @@
         }
 
         public function count(){
+            $this->ensureAuto();
             return count($this->data);
+        }
+        
+        private function ensureAuto() {
+            if(!$this->autoPopulate) return;
+            if(count($this->data)>0) return;
+            if(!$this->autoRoute) return;
+            $key = $this->parseKey($this->autoRoute);
+            $this->data[$this->autoRoute] = $this->wrap($key);
         }
 
         public function getIterator() {
+            $this->ensureAuto();
             return $this->scope->Oxygen_Router_Iterator($this);
         }
 
@@ -241,6 +261,10 @@
                         'Arrays can be indexed only with scalar parameter'
                     );
                     $this->type = self::ARRAY_TYPE;
+                } else if(is_string($this->data) || !$this->data) {
+                    $this->autoRoute = $this->data;
+                    $this->data = array();
+                    $this->autoPopulate = true;
                 } else {
                     $this->type = self::COLLECTION;
                 }

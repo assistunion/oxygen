@@ -33,6 +33,7 @@
             'ExceptionWrapper' => 'Oxygen_Exception_Wrapper',
             'Scope'            => 'Oxygen_Scope',
             'AssetManager'     => 'Oxygen_Asset_Manager',
+            'Session'          => 'Oxygen_Session',
             'LibraryManager'   => 'Oxygen_Lib',
             // 'ClassFactory'     => 'Oxygen_Factory_Class'  -- REGISTERED AUTOMATICALLY
         );
@@ -210,10 +211,10 @@
         }
 
         public function __authenticated() {
-            if (!$this->has('AUTHENTICATION_INFO')) {
-                $this->AUTHENTICATION_INFO = $this->Authenticator();
+            if (!$this->has('auth')) {
+                $this->auth = $this->Authenticator();
             };
-            return $this->AUTHENTICATION_INFO;
+            return $this->auth;
         }
 
         public function __setEnvironment($env) {
@@ -222,6 +223,8 @@
             $this->SERVER  = $env['SERVER'];
             $this->SESSION = $env['SESSION'];
             $this->REQUEST = $env['REQUEST'];
+            $this->GET     = $env['GET'];
+            $this->POST    = $env['POST'];
             $this->COOKIE  = $env['COOKIE'];
             $this->FILES   = $env['FILES'];
             $this->ENV     = $env['ENV'];
