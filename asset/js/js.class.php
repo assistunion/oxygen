@@ -6,7 +6,10 @@
             var templateClass="{0}"
               , componentClass="{1}"
               , templateName="{2}";
-              {3}
+            $(templateClass).each(function(){
+               var $this = $(this);
+               {3}
+            });
         })';
         public function __construct() {
             parent::__construct('.js');

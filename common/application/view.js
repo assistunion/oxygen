@@ -5,7 +5,15 @@ var $document = $(document)
   , $footer = $('div.oxy-footer')
  ;
 
-clientHeight = $document.height()-$header.height()-$footer.height();
-$content.height(clientHeight);
-$menu.height(clientHeight);
+function updateLayout() {
+    clientHeight = $document.height()-$header.height()-$footer.height();
+    $content.height(clientHeight);
+    $menu.height(clientHeight);
+}
+
+var lazyLayout = _.debounce(updateLayout, 300);
+$(window).resize(updateLayout);
+
+updateLayout();
+
 

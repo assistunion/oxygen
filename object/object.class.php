@@ -61,10 +61,14 @@
             $scope = $this->scope;
             $assets = $scope->assets;
             array_push($this->stack, $call);
+            $resource = (strpos($name,'.') === false) 
+                ? $name . Oxygen_Loader::TEMPLATE_EXTENSION
+                : $name
+            ;
             try {
                 include $scope->loader->pathFor(
                     $class,
-                    $name . Oxygen_Loader::TEMPLATE_EXTENSION
+                    $resource
                 );
                 $ex = null;
             } catch(Exception $e){

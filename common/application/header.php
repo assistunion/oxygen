@@ -5,7 +5,7 @@
 	<?$breadCrumbs = $this->getPathToCurrent()?>
 	<?array_pop($breadCrumbs)?>
 	<?foreach($breadCrumbs as $child):?>
-	<li><?=$child?></li>
+	<li><a href="<?=$child->go()?>"><?=$child?></a></li>
 	<?endforeach?>
 	</ul>
 	<?$this->put_login()?>

@@ -405,6 +405,10 @@
             return $this->scope->loader->urlFor(get_class($this),$resource);
         }
 
+        public function pathFor($resource) {
+            return $this->scope->loader->pathFor(get_class($this),$resource);
+        }
+
 		public function configure($routes) {
         }
 

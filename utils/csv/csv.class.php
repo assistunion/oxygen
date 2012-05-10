@@ -1,7 +1,7 @@
 <?
     class Oxygen_Utils_CSV {
 
-        const BOM = "﻿"; //pack("CCC",0xef,0xbb,0xbf);
+        
 
         // Remove surrounding quotes and unescape quotes inside text
         public static function unquote($text) {
@@ -13,12 +13,13 @@
             return trim($text);
         }
 
-        public static function parseLine($raw_data) {
+        public static function parseLine($raw_data, $delimiter=",") {
+            $BOM = pack("CCC",0xef,0xbb,0xbf);
             // Remove byte-order-mark:
-            if(substr($raw_data,0,3) == self::BOM) $raw_dara = substr($raw_data,3); 
+            if(substr($raw_data,0,3) == $BOM) $raw_dara = substr($raw_data,3); 
             
             // Parse CSV-row into array:
-            preg_match_all("/(\"[^\"]*(\"\"[^\"]*)*\"|[^\",\n\r]*),?/",$raw_data,$match);
+            preg_match_all("/(\"[^\"]*(\"\"[^\"]*)*\"|[^\"$delimiter\n\r]*),?/",$raw_data,$match);
 
             $values = $match[1];
 
