@@ -179,9 +179,10 @@
 
         public function go($path = true, $args = array(), $merge = true) {
             if(is_bool($path)) {
+                $p = $this->path === '' ? '/' : $this->path;
                 return $path
-                    ? $this->path . $this->rawArgs
-                    : $this->path
+                    ? $p . $this->rawArgs
+                    : $p
                 ;
             } else if(is_array($path)) {
                 $merge = $args;
@@ -399,6 +400,10 @@
 			    $this->postConfigure();
 			}
 		}
+
+        public function urlFor($resource) {
+            return $this->scope->loader->urlFor(get_class($this),$resource);
+        }
 
 		public function configure($routes) {
         }

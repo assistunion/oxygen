@@ -54,6 +54,18 @@
     	);
     }
 
+    function registerOxygenCommons($scope) {
+        $array = array(
+            'LogonPage' => 'Oxygen_Common_LogonPage',
+            'Authenticator' => 'Oxygen_Common_Authenticator',
+            'Application' => 'Oxygen_Common_Application',
+            'Page' => 'Oxygen_Common_Page'
+        );
+        foreach($array as $name => $class) {
+            $scope->register($name, $class);
+        }
+    }
+
 
     function handleHttpRequest($scope, $root, $model = false, $debug = true) {
 	    $scope->__setEnvironment(array(
@@ -68,6 +80,7 @@
 	    ));
 	    try {
 	        if ($scope->assets->handled($scope->OXYGEN_PATH_INFO)) exit;
+            registerOxygenCommons($scope);
 	        $userScope = $scope->Scope();
 	        $root = $userScope->$root($model);
 	        $scope->httpStatus = 200;
@@ -76,17 +89,20 @@
 	        $last = $root[$scope->OXYGEN_PATH_INFO];
 	        $result = $last->handleRequest();
 	        if (is_string($result)) {
+                if($result === '') $result=$scope->SERVER['REQUEST_URI'];
 	        	$result = redirectResponse($result);
 	        }
 	        header($result['header']);
 	        foreach($scope->httpHeaders as $h) {
 	        	header($h);
 	        }
-	        $body = $result['body'];
-	        if($body) {
-	        	if(is_string($body)) echo $body;
-	        	else call_user_func($body);
-	        }
+            if(isset($result['body'])) {
+    	        $body = $result['body'];
+                if($body) {
+	               	if(is_string($body)) echo $body;
+	            	else call_user_func($body);
+    	        }
+            }
 	    } catch(Exception $ex) {
 	    	if ($debug) {
 		        try {

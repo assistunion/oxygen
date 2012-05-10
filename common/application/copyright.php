@@ -1,0 +1,1 @@
+YourCompany, <?=date('Y')?>
