@@ -12,7 +12,6 @@
     define('OXYGEN_XML_RESPONSE',4);
     define('OXYGEN_REDIRECT_RESPONSE',5);
 
-
     function jsonResponse($data, $headers = array()) {
     	return array(
 			'header' => 'Content-Type: application/json; Charset=UTF-8',
@@ -84,7 +83,7 @@
 	        $userScope = $scope->Scope();
 	        $root = $userScope->$root($model);
 	        $scope->httpStatus = 200;
-			$scope->httpHeaders = array();	        
+			$scope->httpHeaders = array();
 	        $root->setPath($scope->OXYGEN_ROOT_URI);
 	        $last = $root[$scope->OXYGEN_PATH_INFO];
 	        $result = $last->handleRequest();
@@ -117,10 +116,10 @@
 	    	}
 	    }
 	}
-    
+
     return Oxygen_Scope::newRoot(dirname(dirname(__FILE__)));
 
 
-    
+
 
 ?>

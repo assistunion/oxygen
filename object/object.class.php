@@ -20,6 +20,9 @@
         private $stack = array();
 
         public function __call($method, $args) {
+            if($method=='download'){
+                echo 'HERE';
+            }
             $this->__assert(
                 preg_match(self::CALL_REGEXP, $method, $match),
                 self::UNKNOWN_METHOD,
@@ -28,6 +31,9 @@
             );
             $class = get_class($this);
             if ($match[1] !== '') $class = get_parent_class($this);
+            if(!is_string($match[2])){
+                echo 'HERE';
+            }            
             return $this->{$match[2]}($match[3],$args);
         }
 

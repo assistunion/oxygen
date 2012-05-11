@@ -18,16 +18,24 @@
             }
 		}
 
+        public function age($key) {
+            $path = $this->getPath($key);
+            return file_exists($path)
+                ? time() - filemtime($path)
+                : 0x7FFFFFFF
+            ;
+        }
+
 		public function getPath($key) {
             $hash = md5($key);
-			$path = $this->temp_path 
-				  . DIRECTORY_SEPARATOR 
+			$path = $this->temp_path
+				  . DIRECTORY_SEPARATOR
 				  . Oxygen_Utils_Text::format(self::FILE_TEMPLATE,$hash)
 				  ;
 			return $path;
 		}
 
-        // Loads given key. In case of nonexistent key 
+        // Loads given key. In case of nonexistent key
         // throws an exception unless optional second parameter is given
         // (which is returned instead)
         public function load($key) {
@@ -41,8 +49,8 @@
             }
             return file_get_contents($path);
         }
-        
-        // Deserializes given key. In case of nonexistent key 
+
+        // Deserializes given key. In case of nonexistent key
         // throws an exception unless optional second parameter is given
         // (which is returned instead)
         public function deserialize($key) {
@@ -56,7 +64,7 @@
             }
             return unserialize(file_get_contents($path));
         }
-        
+
         public function serialize($key, $value) {
             $this->store($key,serialize($value));
         }
@@ -77,7 +85,7 @@
 				throw $ex;
 			}
 		}
-        
+
         public function echoValue($key) {
             readfile($this->getPath($key));
         }
@@ -102,7 +110,7 @@
 		}
 
 		public function remove($offset) {
-			unlink($offset);
+			unlink($this->getPath($offset));
 		}
 
 	}

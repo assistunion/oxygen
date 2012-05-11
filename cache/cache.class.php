@@ -10,6 +10,7 @@
 		public abstract function storeAll($key, $array);
         public abstract function serialize($key, $value);
         public abstract function deserialize($key);
+        public abstract function age($key);
 
 		public function offsetGet($key){
 			return $this->load($key);

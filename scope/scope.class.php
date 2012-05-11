@@ -127,7 +127,7 @@
         // Wraps given $exception into Oxygen_Exception_Wrapper
         // unless $exception is instance of Oxygen_Excpeion itself
         public function __wrapException($exception) {
-            if ($exception instanceof Oxygen_Excpeion) {
+            if ($exception instanceof Oxygen_Exception) {
                 return $exception;
             } else {
                 return $this->ExceptionWrapper($exception);

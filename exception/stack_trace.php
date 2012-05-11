@@ -1,5 +1,14 @@
 <table class="trace">
-<?foreach($this->getWrapTrace() as $t):?><?$t=(object)$t?>
+<?$trace=$this->getWrapTrace()?>
+<?if($trace[6]['function'] ==='__assert' && !$trace[6]['args'][0]):?>
+<?$countdown=8?>
+<?endif?>
+<?foreach($trace as $n=>$t):?><?$t=(object)$t?>
+<?if(--$countdown>0)continue?>
+<?if(preg_match("/^(get|put|throw|new)_$/", $t->function) && $trace[$n+1]['function']=='__call'):?>
+<?continue?>
+<?endif?>
+<?if($t->function=='__call')continue?>
 <tr>
 <td><?if(isset($t->class)):?><?=$t->class?><?=$t->type?><?=$t->function?>()<?else:?><?=$t->function?>()<?endif?></td>
 <td><?if(isset($t->file)):?> in <?=$t->file?><?else:?>no-file<?endif?>

@@ -28,7 +28,7 @@
                 if (preg_match("/\?/",$url)) {
                     $url .= '&';
                 } else {
-                    $url .= '?'; 
+                    $url .= '?';
 
                 }
                 $url .= http_build_query($params);
@@ -39,6 +39,16 @@
             $this->__assert(
                 $result !== false,
                 'DOWNLOAD FAILED'
+            );
+            return $result;
+        }
+
+        public function getSimpleXML($url, $params = array()) {
+            $result = trim($this->get($url, $params));
+            $result = new SimpleXMLElement($result);
+            $this->__assert(
+                $result !== false,
+                'INVALID XML'
             );
             return $result;
         }

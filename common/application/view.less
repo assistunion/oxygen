@@ -134,7 +134,8 @@ img.controller-icon {
 }
 
 .trans(@seconds: 0.3s) {
-	-moz-transition: @seconds;
+	-webkit-transition: @seconds;
+	   -moz-transition: @seconds;
 }
 
 a.oxygen-tile {
@@ -251,7 +252,7 @@ div.oxy-content {
 	width: 85%;
 	float:left;
 	background-color: white;
-	box-shadow:inset 0px 0px 2px #666;	
+	box-shadow:inset 0px 0px 2px #666;
 	line-height: 1.4em;
 }
 
@@ -260,7 +261,7 @@ a:active {
 }
 
 
-div.oxy-header {   
+div.oxy-header {
 
 	ul.bread-crumbs {
 		float:left;
@@ -306,7 +307,7 @@ div.oxy-header {
 		background-repeat: no-repeat;
 		background-position: center;
 		float:left;
-	}	
+	}
 	h1 {
 		color: white;
 		font-size: 17px;
