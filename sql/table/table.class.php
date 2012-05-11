@@ -37,6 +37,10 @@
 
         }
 
+        public function getData() {
+            
+        }
+
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
             //  $x['data']->Data($this->model['data']);
