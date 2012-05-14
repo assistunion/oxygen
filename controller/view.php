@@ -1,10 +1,5 @@
-<?print_r($this->args)?>
-<ul>
-<li><?$this['.']->put_as_current()?></li>
-<?if(isset($this['..'])):?>
-<li><?$this['..']->put_as_parent()?></li>
+<?if($this->child):?>
+<?$this->child->put_view()?>
+<?else:?>
+<?$this->put_tiled()?>
 <?endif?>
-<?foreach($this as $route=>$child):?>
-<li><?=$child->put_as_child()?></li>
-<?endforeach?>
-</ul>
