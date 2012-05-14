@@ -2,6 +2,8 @@
 <?$trace=$this->getWrapTrace()?>
 <?if($trace[6]['function'] ==='__assert' && !$trace[6]['args'][0]):?>
 <?$countdown=8?>
+<?else:?>
+<?$countdown=0?>
 <?endif?>
 <?foreach($trace as $n=>$t):?><?$t=(object)$t?>
 <?if(--$countdown>0)continue?>
