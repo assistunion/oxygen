@@ -22,9 +22,9 @@
         	} else {
                 return Oxygen_Utils_Text::format(
                     self::JQUERY_WRAPPER,
-                    $asset->component !== false ? '.' . $asset->component : 'body',
-                    $asset->class,
-                    $asset->name,
+                    $item->component !== false ? '.' . $item->component : 'body',
+                    $item->class,
+                    $item->name,
                     $source
                 );
             }

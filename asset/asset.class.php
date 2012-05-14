@@ -5,7 +5,7 @@
         public $added = array();
         public $pipeline = false;
         public $process = false;
-        private $ext = '';
+        public $ext = '';
         private $hash = false;
         private $compiled = false;
 
