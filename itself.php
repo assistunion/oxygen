@@ -12,6 +12,14 @@
     define('OXYGEN_XML_RESPONSE',4);
     define('OXYGEN_REDIRECT_RESPONSE',5);
 
+    function o($tag = 'div') {
+        if($tag{0}=='/'){
+            Oxygen::close();
+        } else {
+            Oxygen::open($tag);
+        }
+    }
+
     function jsonResponse($data, $headers = array()) {
     	return array(
 			'header' => 'Content-Type: application/json; Charset=UTF-8',

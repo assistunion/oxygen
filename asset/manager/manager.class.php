@@ -53,9 +53,13 @@
             };
             return true;
         }
+        
+        public function getKey($call) {
+            return $call->class . '::' . $call->name . '::' . $call->component;
+        }
 
         public function add($call) {
-            $key = implode('::', $call);
+            $key = $this->getKey($call);
             if (isset($this->added[$key])) return;
             $this->added[$key] = true;
             foreach ($this->assets as $asset) {

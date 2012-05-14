@@ -1,10 +1,10 @@
-<div class="<?=$this->getTemplateClass()?>">
+<?o()?>
 	<div class="oxy-wrap">
 		<?$this->put_header()?>
 		<?$this->put_menu()?>
 		<?$this->put_content()?>
 	</div>
-</div>
-<?$this->put_footer()?>	
+<?o('/')?>
+<?$this->put_footer()?>
 
 

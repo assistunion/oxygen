@@ -11,6 +11,7 @@
 
         public $cache = false;
         private $loader = false;
+        private $manager = null;
 
         const URL_REGEX = "|^https?://|";
         const REMOTE_KEY_TEMPLATE = 'cached-url-{0}';
@@ -27,14 +28,16 @@
       public function __complete() {
             $this->cache = $this->scope->cache;
             $this->loader = $this->scope->loader;
+            $this->manager = $this->scope->assets;
         }
 
 
         public function addRemote($url) {
             if(isset($this->list[$url])) return;
+            $assets = array();
+            $assets[$this->ext] = array(self::REMOTE_RESOURCE, $url);
             $this->list[$url] = (object)array(
-                'type'      => self::REMOTE_RESOURCE,
-                'path'      => $url,
+                'assets'    => $assets,
                 'component' => false,
                 'class'     => false,
                 'name'      => false
@@ -49,10 +52,11 @@
                 $toHash = array();
                 $list = $this->list;
                 ksort($list);
-                foreach($list as $key=>$asset) {
+                foreach($list as $key=>$item) {
                     $toHash[] = $key;
-                    if($asset->type == self::LOCAL_RESOURCE) {
-                        $toHash[] = filemtime($asset->path);
+                    list($type, $path) = $item->assets[$this->ext];
+                    if($type == self::LOCAL_RESOURCE) {
+                        $toHash[] = filemtime($path);
                     }
                 }
                 $str = implode(':', $toHash);
@@ -71,11 +75,12 @@
             }
         }
 
-        protected function processOne($asset) {
-            if($asset->type === self::REMOTE_RESOURCE){
-                return $this->getCachedUrlContent($asset->path);
+        protected function processOne($item) {
+            list($type, $path) = $item->assets[$this->ext];
+            if($type === self::REMOTE_RESOURCE){
+                return $this->getCachedUrlContent($path);
             } else {
-                return file_get_contents($asset->path);
+                return file_get_contents($path);
             }
         }
 
@@ -110,21 +115,17 @@
         }
 
         public function add($call, $key = false) {
-            list($class, $name, $component) = $call;
-            if($key === false) $key = implode('::', $call);
+            if ($key === false) {
+                $key = $this->manager->getKey($call);
+            }
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = $this->loader->pathFor($class, $name . $this->ext);
+            $path = $this->loader->pathFor($call->class, $call->name . $this->ext);
             if($path !== false) {
-                $key = $path . '::' . $component;
+                $key = $path . '::' . $call->component;
                 if (!isset($this->list[$key])){
-                    $this->list[$key] = (object)array(
-                        'type'      => self::LOCAL_RESOURCE,
-                        'path'      => $path,
-                        'class'     => $class,
-                        'name'      => $name,
-                        'component' => $component
-                    );
+                    $call->assets[$this->ext] = array(self::LOCAL_RESOURCE, $path);
+                    $this->list[$key] = $call;
                     $this->invalidate();
                 }
             }

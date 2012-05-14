@@ -22,6 +22,7 @@
         // TODO: in php 5.4 this should be refactored with traits
         // begin Copy-Paste block:
 
+
         const OBJECT_CLASS    = 'Oxygen_Object';
         const EXCEPTION_CLASS = 'Oxygen_Exception';
         const SCOPE_CLASS     = 'Oxygen_Scope';
@@ -32,14 +33,12 @@
         const CALL_REGEXP = '/^(parent_)?(get_|put_|throw_|new_)(.*)$/';
         const UNKNOWN_METHOD = 'Unknown method {0}->{1}';
 
-        const CLAZZ     = 0;
-        const RESOURCE  = 1;
-        const COMPONENT = 2;
-
         public $scope = null;
-        private $stack = array();
 
         public function __call($method, $args) {
+            if($method=='download'){
+                echo 'HERE';
+            }
             $this->__assert(
                 preg_match(self::CALL_REGEXP, $method, $match),
                 self::UNKNOWN_METHOD,
@@ -48,11 +47,14 @@
             );
             $class = get_class($this);
             if ($match[1] !== '') $class = get_parent_class($this);
+            if(!is_string($match[2])){
+                echo 'HERE';
+            }
             return $this->{$match[2]}($match[3],$args);
         }
 
         public final function new_($class, $args = array()) {
-            return $this->scope->resolve($class)->getInstance($args);
+            return $this->scope->resolve($class)->getInstance($args, $this->scope);
         }
 
         public final function throw_($class, $args) {
@@ -77,47 +79,41 @@
 
         public final function put_($name, $args = array(), $class = false) {
             $class = ($class === false) ? get_class($this) : $class;
-            $call = array($class, $name, false);
+            $call = (object)array(
+                'instance'  => $this,
+                'class'     => $class,
+                'name'      => $name,
+                'stack'     => array(),
+                'sp'        => 0,
+                'component' => false,
+                'assets'    => array()
+            );
+            Oxygen::push($call);
             $scope = $this->scope;
             $assets = $scope->assets;
-            array_push($this->stack, $call);
+            $resource = (strpos($name,'.') === false)
+                ? $name . Oxygen_Loader::TEMPLATE_EXTENSION
+                : $name
+            ;
             try {
                 include $scope->loader->pathFor(
                     $class,
-                    $name . Oxygen_Loader::TEMPLATE_EXTENSION
+                    $resource
                 );
                 $ex = null;
             } catch(Exception $e){
                 $ex = $e;
             }
-            if ($ex !== null) {
-                array_pop($this->stack);
-                throw $ex;
-            } else {
-                $assets->add(array_pop($this->stack));
-            }
+            Oxygen::closeAll();
+            $result = Oxygen::pop();
+            if ($ex !== null) throw $ex;
+            $assets->add($result);
         }
 
-        public static function templateClassFor($class, $resource) {
-            return 'css-' . $class . '-' . $resource;
+        public function getTemplateClass() {
+            return Oxygen::getCssClass();
         }
 
-
-        public final function getTemplateClass() {
-            if(($count = count($this->stack)) == 0) {
-                $this->throwException('getTemplateClass() call is valid only within template code');
-            } else {
-                $call = &$this->stack[$count-1];
-                if($call[self::COMPONENT] === false) {
-                    return $call[self::COMPONENT] = self::templateClassFor(
-                        $call[self::CLAZZ],
-                        $call[self::RESOURCE]
-                    );
-                } else {
-                    return $call[self::COMPONENT];
-                }
-            }
-        }
 
         public function __toString() {
             return Oxygen_Utils_Text::format(self::DEFAULT_TO_STRING, get_class($this));
@@ -166,6 +162,7 @@
             || $class === self::EXCEPTION_CLASS
             );
         }
+
 
         // end Copy-Paste block.
 

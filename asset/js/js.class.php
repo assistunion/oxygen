@@ -14,9 +14,10 @@
         public function __construct() {
             parent::__construct('.js');
         }
-        protected function processOne($asset) {
-        	$source = parent::processOne($asset);
-        	if($asset->type === self::REMOTE_RESOURCE){
+        protected function processOne($item) {
+        	$source = parent::processOne($item);
+            list($type, $path) = $item->assets[$this->ext];
+        	if($type === self::REMOTE_RESOURCE){
         		return $source;
         	} else {
                 return Oxygen_Utils_Text::format(
