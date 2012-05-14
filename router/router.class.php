@@ -119,6 +119,7 @@
             $params = array();
             foreach($this->params as $name => $config) {
                 list($regexp, $transform) = $config;
+                if(!$transform) $transform = 'any';
                 $value = $this->$transform(
                     (($this->type === self::ARRAY_TYPE || $this->autoPopulate)
                         ? $data
