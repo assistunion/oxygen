@@ -6,12 +6,13 @@ var $document = $(document)
  ;
 
 function updateLayout() {
-    clientHeight = $document.height()-$header.height()-$footer.height();
+    var clientHeight = $document.height()-$header.height()-$footer.height();
     $content.height(clientHeight);
     $menu.height(clientHeight);
 }
 
 var lazyLayout = _.debounce(updateLayout, 300);
+$(window).resize(updateLayout);
 $(window).resize(updateLayout);
 
 updateLayout();
