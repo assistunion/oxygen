@@ -1,6 +1,7 @@
 <div class="oxy-header">
 	<?$this->put_logo()?>
-	<h1><?$this->getCurrent()->put_title()?></h1>
+	<?$current = $this->getCurrent()?>
+	<h1><?$current->put_title()?></h1>
 	<ul class="bread-crumbs">
 	<?$breadCrumbs = $this->getPathToCurrent()?>
 	<?array_pop($breadCrumbs)?>

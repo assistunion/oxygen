@@ -15,6 +15,11 @@
 <?=$this->put_html5shim()?>
 <?=$this->put_stylesheets()?>
 <?=$this->put_javascripts()?>
+<?if($this instanceof Oxygen_Controller):?>
+<?$current=$this->getCurrent()?>
+<link rel="shortcut icon" href="<?=$current->getIconSource()?>"/>
+<title><?$current->put_title()?></title>
+<?endif?>
 </head>
 <body>
 <?=$body?>
