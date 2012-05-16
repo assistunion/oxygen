@@ -8,7 +8,9 @@ create table file_upload_classes (
 insert into file_upload_classes values
 ('Oxygen_File_XLS','Excel file','xls','xls'),
 ('Oxygen_File_XML','Simple XML','xml','xml'),
-('Oxygen_File_CSV','CSV file','csv','csv');
+('Oxygen_File_CSV','CSV file','csv','csv'),
+('Oxygen_File_JSON','JSON file','json','json'),
+('Oxygen_File_YAML','YAML file','yaml','haml');
 
 drop table if exists file_upload_formats;
 create table file_upload_formats (
