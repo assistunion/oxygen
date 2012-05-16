@@ -6,11 +6,11 @@ create table file_upload_classes (
 	extension varchar(16) not null
 ) engine InnoDB;
 insert into file_upload_classes values
-('Oxygen_File_XLS','Excel file','xls','xls'),
-('Oxygen_File_XML','Simple XML','xml','xml'),
-('Oxygen_File_CSV','CSV file','csv','csv'),
-('Oxygen_File_JSON','JSON file','json','json'),
-('Oxygen_File_YAML','YAML file','yaml','haml');
+('Oxygen_Common_FileUpload_XLS','Excel file','xls','xls'),
+('Oxygen_Common_FileUpload_XML','Simple XML','xml','xml'),
+('Oxygen_Common_FileUpload_CSV','CSV file','csv','csv'),
+('Oxygen_Common_FileUpload_JSON','JSON file','json','json'),
+('Oxygen_Common_FileUpload_YAML','YAML file','yaml','haml');
 
 drop table if exists file_upload_formats;
 create table file_upload_formats (
@@ -21,11 +21,11 @@ create table file_upload_formats (
 	index(handler_class)
 ) engine InnoDB;
 insert into file_upload_formats values
-(1,'Excel file','Oxygen_File_XLS','{}'),
-(2,'XML file','Oxygen_File_XML','{"inferSchema":true}'),
-(3,'CSV file (Comma)','Oxygen_File_CSV','{"delimiter":",", "enclosure":"\\""}, "escape":"\\\\"'),
-(4,'CSV file (Semicolon)','Oxygen_File_CSV','{"delimiter":";", "enclosure":"\\""}, "escape":"\\\\"'),
-(5,'CSV file (Tilde)','Oxygen_File_CSV','{"delimiter":"~", "enclosure":""}, "escape":"\\\\"');
+(1,'Excel file','Oxygen_Common_FileUpload_XLS','{}'),
+(2,'XML file','Oxygen_Common_FileUpload_XML','{"inferSchema":true}'),
+(3,'CSV file (Comma)','Oxygen_Common_FileUpload_CSV','{"delimiter":",", "enclosure":"\\""}, "escape":"\\\\"'),
+(4,'CSV file (Semicolon)','Oxygen_Common_FileUpload_CSV','{"delimiter":";", "enclosure":"\\""}, "escape":"\\\\"'),
+(5,'CSV file (Tilde)','Oxygen_Common_FileUpload_CSV','{"delimiter":"~", "enclosure":""}, "escape":"\\\\"');
 
 drop table if exists file_upload_files;
 create table file_upload_files (
