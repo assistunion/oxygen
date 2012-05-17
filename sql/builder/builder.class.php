@@ -8,7 +8,7 @@
 		// no escaped leading and trailing spaces.
 		// (If it's the case for you - my regrets!)
 		// So we will treat any dots in names as dots in qualified names.
-		private static function safeName($name) {
+		public static function safeName($name) {
 			if(!preg_match('/^[A-Z_][\.A-Z0-9_]*$/i', $name)){
 				$pieces = explode('.', $name);
 				foreach($pieces as $i => $piece) {
@@ -18,6 +18,11 @@
 			} else {
 				return $name;
 			}
+		}
+
+		// TODO: Check for correctness in edge cases (!)
+		public static function compoundAlias($alias, $name) {
+			return '`' . $alias . '.' . $name . '`';
 		}
 
 		public static function buildValueList($values) {

@@ -12,14 +12,32 @@
 
         public $name = '';
         public $fullName = '';
-        private $policy = false;
 
-        public function getInstance($alias) {
-            $domain[$alias] = &$this->model;
+        private $policy = false;
+        private $policyColumns = array();
+        private $policyPredicates = array();
+
+
+        private static $nextAlias = 0;
+        public static function nextAlias() {
+            return self::$nextAlias++;
+        }
+
+
+        public function getIcon() {
+            return 'database_table';
+        }
+
+        public function getData($alias) {
+            $from[$alias] = array(
+                'name' => $this->fullName,
+                'type' => 'init',
+                'join' => array()
+            );
             return $this->scope->DataSet(array(
                 'keys'   => $this->getKeys($alias),
                 'select' => $this->getPolicyColumns($alias),
-                'from'   => $domain,
+                'from'   => $from,
                 'where'  => $this->getPolicyPredicates($alias),
                 'group'  => false,
                 'having' => false,
@@ -29,16 +47,65 @@
             ));
         }
 
-        public function getPolicyColumns() {
-
+        public function getKeys() {
+            return array();
         }
 
-        public function getPolicyPredicates() {
-
+        private function ensurePolicyLoaded() {
+            if(!$this->policy) $this->policy = $this->connection->getPolicy($this->model);
         }
 
-        public function getData() {
-            
+        public function getPolicyColumns($alias) {
+            if(isset($this->policyColumns[$alias])) {
+                return $this->policyColumns[$alias];
+            }
+            $this->ensurePolicyLoaded();
+            $result = array();
+            foreach($this->policy as $intent => $policy) {
+                $columns = $policy['columns'];
+                if ($columns === '*') $columns = array('*');
+                $aliased = array();
+                foreach($columns as $key => $column) {
+                    $add = true;
+                    if(is_integer($key)) {
+                        // normal column
+                        if ($column === '*') {
+                            foreach($this->model['columns'] as $col) {
+                                $columnValue = Oxygen_SQL_Builder::safeName($alias . '.' . $col['name']);
+                                $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias, $col['name']);
+                                $this->__assert(
+                                    !isset($aliased[$columnAlias]) || ($aliased[$columnAlias] === $columnValue),
+                                    'Alias {0} is redefined',
+                                    $columnAlias
+                                );
+                                $aliased[$columnAlias] = $columnValue;
+                            }
+                            $add = false;
+                        } else {
+                            $columnValue = Oxygen_SQL_Builder::safeName($alias . '.' . $column);
+                            $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias, $column);
+                        }
+                    } else {
+                        $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias, $key);
+                        $columnValue = $column; // TODO: Document this behavior (no escaping in aliased expressions);
+                    }
+                    if ($add) {
+                        $this->__assert(
+                            !isset($aliased[$columnAlias]) || ($aliased[$columnAlias] === $columnValue),
+                            'Alias {0} is redefined',
+                            $columnAlias
+                        );
+                        $aliased[$columnAlias] = $columnValue;
+                    }
+                }
+                $result[$intent] = $aliased;
+            }
+            return $this->policyColumns[$alias] = $result;
+        }
+
+        public function getPolicyPredicates($alias) {
+            $this->ensurePolicyLoaded();
+            return array();
         }
 
         public function configure($x) {

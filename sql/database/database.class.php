@@ -8,6 +8,10 @@
             $this->scope->database = $this;
         }
 
+        public function getIcon() {
+            return 'database';
+        }
+
 		public function configure($x){
             $x['{table:url}']->Table($this->model['tables']);
 		}

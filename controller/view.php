@@ -1,5 +1,1 @@
-<?if($this->child):?>
-<?$this->child->put_view()?>
-<?else:?>
-<?$this->put_tiled()?>
-<?endif?>
+<?$this->put_('as_tiles')?>

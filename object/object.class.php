@@ -32,6 +32,14 @@
             return $this->{$match[2]}($match[3],$args);
         }
 
+        public function getDefaultView() {
+            return 'view';
+        }
+
+        public function put() {
+            $this->put_($this->getDefaultView(),func_get_args());
+        }
+
         public final function new_($class, $args = array()) {
             return $this->scope->resolve($class)->getInstance($args, $this->scope);
         }

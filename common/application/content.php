@@ -1,7 +1,7 @@
 <div class="oxy-content">
 	<?if($this->child):?>
-		<?$this->child->put_view()?>
+		<?$this->child->put()?>
 	<?else:?>
-		<?$this->put_tiled()?>
+		<?$this->put_as_tiles()?>
 	<?endif?>
 </div>

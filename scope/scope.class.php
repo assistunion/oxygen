@@ -102,6 +102,14 @@
                 return $this->register($name,$name);
             }
         }
+        
+        public function handleError($errno, $errstr, $errfile, $errline) {
+            throw $this->Exception("Error($errno) $errstr in  $errfile at line $errline");
+        }
+        
+        public function strictMode() {
+            set_error_handler(array($this, 'handleError'));
+        }
 
         public function has($name, $recursive = true) {
             if(isset($this->entries[$name])) {

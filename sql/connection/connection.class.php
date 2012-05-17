@@ -63,7 +63,11 @@
         }
 
         public function __toString() {
-            return $this->host;
+            return $this->model['user'] . '@' . $this->model['host'];
+        }
+
+        public function getIcon() {
+            return 'database_gear';
         }
 
         public function getPolicy($table) {

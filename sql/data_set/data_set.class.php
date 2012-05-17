@@ -22,7 +22,7 @@
 			'keys'   => false
 		);
 
-		private $meta = array();
+		public $meta = array();
 		public function getMeta() {
 			return $this->meta;
 		}
@@ -31,9 +31,13 @@
 		public function getKeyNames() {	}
 
 		public function __construct($meta) {
-			$meta = array_merge(self::$defaults, $meta);
+			$this->meta = array_merge(self::$defaults, $meta);
+		}
+
+		public function __complete() {
 			$this->connection = $this->scope->connection;
 		}
+
 
 	}
 

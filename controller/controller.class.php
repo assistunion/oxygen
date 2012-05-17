@@ -67,6 +67,15 @@
 			return $this->model;
 		}
 
+        public function getDefaultView() {
+            return 'view';
+        }
+
+        public function put() {
+            $args = func_get_args();
+            $this->put_($this->getDefaultView(),$args);
+        }
+
         public function deactivate() {
             $this->isActive = false;
             $this->isCurrent = false;
@@ -163,7 +172,7 @@
                     return $this;
                 }
             }
-            
+
             if ($this->isCurrent)
             $this->__assert($this->child, 'Child must be selected');
             return $this->child->getCurrent();
@@ -350,7 +359,7 @@
                     break;
                 }
             }
-            $this->__assert($router !== null);
+            $this->__assert($router !== null,'Router is null');
             if(isset($this->children[$actual])) {
                 $next = $this->children[$actual];
             } else {
@@ -384,6 +393,16 @@
 			);
 			$this->configured = true;
 		}
+
+        public function addExplicit($route,$model) {
+            $index = count($this->routes) + 1;
+            $this->index[$index] = $route;
+            $this->__assert(
+                $model instanceof Oxygen_Controller,
+                'Explicit child should be instance of Oxygen_Controller'
+            );
+            return $this->routes[$route] = $this->scope->Router($route, $model);
+        }
 
 		public function add($class, $route, $model) {
             $index = count($this->routes) + 1;
