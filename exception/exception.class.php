@@ -98,7 +98,8 @@
             try {
                 include $scope->loader->pathFor(
                     $class,
-                    $resource
+                    $resource,
+                    true
                 );
                 $ex = null;
             } catch(Exception $e){

@@ -120,7 +120,7 @@
             }
             if(isset($this->added[$key])) return;
             $this->added[$key] = true;
-            $path = $this->loader->pathFor($call->class, $call->name . $this->ext);
+            $path = $this->loader->pathFor($call->class, $call->name . $this->ext, false);
             if($path !== false) {
                 $key = $path . '::' . $call->component;
                 if (!isset($this->list[$key])){

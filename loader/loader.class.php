@@ -101,7 +101,12 @@
             $required = true
         ) {
             // Exit from get_parent_class recursion for resources (see below)
-            if ($class === false) return false;
+            if ($class === false) {
+                $this->__assert(
+                    !$required, 'Resource {0} is not found', $resource
+                );
+                return false;
+            }
 
             $key = $class . '::' . $resource;
 
