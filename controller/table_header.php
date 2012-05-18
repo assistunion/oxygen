@@ -1,0 +1,1 @@
+<tr><th>Icon</th><th>Name</th></tr>
