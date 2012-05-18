@@ -3,6 +3,12 @@
 	define('OXYGEN_ROOT', dirname(dirname(__FILE__)));
 	define('OXYGEN_BASE', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
+	require(OXYGEN_BASE.'scope/scope.class.php');
+
+	function o() {
+
+	}
+
 	class Oxygen {
 
 		private $classPaths = array();
@@ -82,7 +88,7 @@
         		return $result;
         	}
 
-    	# }
+        # }
 
 	}
 
