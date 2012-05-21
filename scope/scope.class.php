@@ -1,7 +1,5 @@
 <?
 
-    require OXYGEN_BASE . 'reflector/reflector.class.php';
-
 	class Oxygen_Scope {
 
 		private $entries = array();
@@ -27,14 +25,16 @@
 			}
 		}
 
-		public function __defined($name) {
+		public function __defined($name, &$out) {
 			if (isset($this->entries[$name])) {
+				$out = $this->entries[$name];
 				return true;
 			} else if ($this->scope !== null) {
-				return $this->scope->__defined($name);
+				return $this->scope->__defined($name, $out);
+			} else {
+				return false;
 			}
 		}
-
 		public function __resolve($name) {
 			if (isset($this->callables[$name])) {
 				return $this->callables[$name];
@@ -61,7 +61,7 @@
 
 		public function __call($name, $args) {
 			list($new, $def) = $this->__resolve($name);
-			return $new 
+			return $new
 				? $def->newInstance($args, $this)
 				: call_user_func_array($def, $args)
 			;

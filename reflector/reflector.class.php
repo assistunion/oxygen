@@ -1,6 +1,6 @@
 <?
 	class Oxygen_Reflector {
-		
+
 		public $name = '';
 		public $factory = null;
 		private $setScope = 'setScopeNone';
@@ -8,7 +8,7 @@
 
 		private static $defaults = array(
 			'factory'  => false,
-			'complte'  => '__complete',
+			'complete'  => '__complete',
 			'setScope' => true,
 		);
 
@@ -23,16 +23,17 @@
 			}
 			if ($info !== false) {
 				$params = self::$defaults;
-				$info->invoke(null, $params);
+				$params_ = &$params;
+				$info->invoke(null, $params_);
 				$this->factory = $params['factory'] === false
-					? array($this->reflected, 'newInstance');
+					? array($this->reflected, 'newInstance')
 					: $params['factory']
 				;
 				$setScope = $params['setScope'];
 				if ($setScope === true) {
-					$this->setScope = 'setScopeDefault'
+					$this->setScope = 'setScopeDefault';
 				} else if ($setScope === false) {
-					$this->setScope = 'setScopeNone'
+					$this->setScope = 'setScopeNone';
 				} else if (preg_match('/^(\\$?)([A-Za-z_][A-Za-z0-9_]*)$/', $setScope, $match)) {
 					$this->setScope = $match[1] === '$'
 						? 'setScopeVar'
@@ -46,6 +47,7 @@
 			} else {
 				$this->factory = array($this->reflected, 'newInstance');
 			}
+
 		}
 
 		private function setScopeDefault($obj, $scope) {
@@ -69,7 +71,8 @@
 		}
 
 		public function newInstance($args, $scope) {
-			$result =  call_user_func_array($this->constructor, $args);
+			$result = call_user_func_array($this->factory, $args);
+			$this->{$this->setScope}($result, $scope);
 			if(isset($this->info['complete'])) {
 				$result->{$this->info['complte']}($scope);
 			}
