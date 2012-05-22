@@ -1,0 +1,17 @@
+extends: ~
+
+views:
+    oxy:
+        access: public
+        args: { class: Object }
+        info: Renders template
+
+    exception: 
+        access: public
+        args: { ex: Exception }
+        info: Renders given exception
+
+    exception_trace:
+        access: public
+        args: { trace: array }
+        info: Renders given exception trace
