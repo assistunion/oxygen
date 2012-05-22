@@ -1,12 +1,53 @@
 <?
-	class Oxygen_Common_FileUpload extends Oxygen_Common_Controller {
-		
-		public function getFiles() {
-			return $this->model->getFiles();
+
+	class Oxygen_Common_FileUpload extends Oxygen_Controller {
+
+		public $fileScope;
+
+		public function __construct($fileScope = false) {
+            if ($fileScope === false) {
+              $this->fileScope = $this;
+            } else {
+	   		  $this->fileScope = $fileScope;
+            }
 		}
 
-		public function handlePost() {
+		public function post() {
+    		throw new Exception(print_r($this->scope->FILES,true));
 			return '';
 		}
+
+		public function getIcon() {
+			return 'folder_go';
+		}
+
+		public function __toString() {
+			return 'File upload';
+		}
+
+		public function makeFileFormat($obj) {
+			return $this->scope->{$obj['handler_class']}($obj['handler_args'],$obj['title'],$obj['id']);
+		}
+
+		public function getFileFormats() {
+			return $this->scope->connection->runQuery(
+				'select * from <db>.file_upload_formats',
+				array_merge($this->scope->dbParam,array()),
+				'id',
+				$this, 'makeFileFormat'
+			);
+		}
+
+		public function getFakeHistory() {
+			return json_decode($this->get_('history.json'));
+		}
+
+		public function configure($x) {
+			$x['{id:int}']->TPRO_File($this->getFakeHistory());
+		}
+
+
 	}
+
+
 ?>
