@@ -9,7 +9,7 @@
 
         # BEGIN ASSETS:
 <?foreach($class->assets as $asset):?>
-            <?=$class->templates[$asset->name]->modifier?> function asset_<?=$asset->name?>_<?=$asset->type?>() {<?
+            <?=$class->views[$asset->name]->access?> function asset_<?=$asset->name?>_<?=$asset->type?>() {<?
                 if(!$asset->override):?>}<?else:?>
 
                 if(!isset($this->__assets)) {
@@ -22,19 +22,33 @@
 <?endforeach?>
         # END ASSETS.
 
-        # BEGIN TEMPLATES:
-<?foreach($class->templates as $name=>$method):?>
+        # BEGIN VIEWS:
+<?foreach($class->views as $name=>$method):?>
+            <?$args = preg_replace('/(^|,)/','\$\\1',implode(',',array_keys($method->args)))?>
+            <?if($args=='$')$args=''?>
 
-            // <?=$name?> //
+            /** GET: <?=$method->info?>
+            <?foreach ($method->args as $arg => $type):?>
 
-            <?=$method->modifier?> function get_<?=$name?>(<?=$method->args?>) {
-                ob_start(); try { $this->put_<?=$name?>(<?=$method->args?>); }
+                @param <?=$type?> <?=$arg?>
+            <?endforeach?>
+
+            */
+            <?=$method->access?> function get_<?=$name?>(<?=$args?>) {
+                ob_start(); try { $this->put_<?=$name?>(<?=$args?>); }
                 catch (Exception $_) {}
                 if(isset($_)) {ob_end_clean(); throw $_;}
                 return ob_get_clean();
             }
 
-            <?=$method->modifier?> function put_<?=$name?>(<?=$method->args?>) {
+            /** PUT: <?=$method->info?>
+            <?foreach ($method->args as $arg => $type):?>
+
+                @param <?=$type?> <?=$arg?>
+            <?endforeach?>
+
+            */
+            <?=$method->access?> function put_<?=$name?>(<?=$args?>) {
                 $result = include '<?=$method->absPath?>';
                 $this->asset_<?=$name?>_css();
                 $this->asset_<?=$name?>_js();
@@ -43,7 +57,7 @@
             }
 <?endforeach?>
 
-        # END TEMPLATES.
+        # END VIEWS.
     }
 
     <?if($class->both):?>class <?=$class->name?> extends <?$class->oxyName?> {

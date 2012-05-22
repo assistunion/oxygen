@@ -119,14 +119,23 @@
                 }
             }
 
-            # ===  TEMPLATES ====
-            $templates = array();
+            # ===  VIEWS ====
+            $yamlViews = isset($yaml['views']) 
+                ? $yaml['views']
+                : array()
+            ;
+            $views = array();
             foreach ($all['.php'] as $name => $file) {
-                $templates[$name] = (object)array(
-                    'relPath'  => $path . DIRECTORY_SEPARATOR . basename($file),
-                    'absPath'  => $file,
-                    'modifier' =>'public',
-                    'args'     =>''
+                $yamlView = isset($yamlViews[$name])
+                    ? $yamlViews[$name]
+                    : array()
+                ;
+                $views[$name] = (object)array(
+                    'relPath' => $path . DIRECTORY_SEPARATOR . basename($file),
+                    'absPath' => $file,
+                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : 'public',
+                    'args'    => isset($yamlView['args']) ? $yamlView['args'] : array(),
+                    'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view')
                 );
             }
 
@@ -148,7 +157,7 @@
 
             # ===  ASSETS =====
             $assets = array();
-            foreach ($templates as $name => $tpl) {
+            foreach ($views as $name => $tpl) {
                 foreach ($assetExt as $type => $ext) {
                     $method = 'asset_' . $name . '_' . $type;
                     if (isset($all[$ext][$name])) {
@@ -177,7 +186,7 @@
                 'name' => $className,
                 'extends' => $ancestor,
                 'oxyName' => $className . self::OXYGEN_SUFFIX,
-                'templates' => $templates,
+                'views' => $views,
                 'assets' => $assets
             );
 
@@ -206,7 +215,7 @@
             $compileDir     = OXYGEN_COMPILE_ROOT . $path;
             if (!$base) {
                 try {
-                    return include $normalPath;
+                    return include_once $normalPath;
                 } catch (Oxygen_FileNotFoundException $e) {
 
                 }
@@ -230,7 +239,7 @@
                     !$base
                 );
             }
-            return include $compilePath;
+            return include_once $compilePath;
         }
 
 		public function __construct($privateCacheRoot, $compileRoot = false, $assetRoot = false) {
