@@ -92,8 +92,8 @@
             return sfYaml::load($path);
         }
 
-        private function compileItem($normalDir, $genPath, $name, $yaml, $path, $both) {
-            $files = glob($normalDir.DIRECTORY_SEPARATOR.'*');
+        private function compileItem($normalDir, $genPath, $className, $yaml, $path, $both) {
+            $files = glob($normalDir . DIRECTORY_SEPARATOR . '*');
             $all = array(
                 '.class.php' => array(),
                 '.class.yml' => array(),
@@ -107,34 +107,80 @@
                 '*'          => array()
             );
 
-            $pattern = '/(?:'.implode('|',array_map('preg_quote',array_keys($all))).')$/';
-            foreach($files as $file) {
-                if(preg_match($pattern,basename($file),$m)) {
-                    $all[$m[0]][] = $file;
+            $pattern = '/(?:' . implode('|', array_map('preg_quote', array_keys($all))) . ')$/';
+            foreach ($files as $file) {
+                $name = basename($file);
+                if (preg_match($pattern, $name, $m)) {
+                    $ext = $m[0];
+                    $name = substr($name, 0, -strlen($ext));
+                    $all[$ext][$name] = $file;
                 } else {
-                    $all['*'][] = $file;
+                    $all['*'][$name] = $file;
                 }
             }
 
             # ===  TEMPLATES ====
             $templates = array();
-            foreach($all['.php'] as $file) {
-                $fileName = basename($file);
-                $templates[substr($fileName,0,-4)] = (object)array(
-                    'path'=>$path . DIRECTORY_SEPARATOR . $fileName,
-                    'modifier'=>'public',
-                    'args'=>''
+            foreach ($all['.php'] as $name => $file) {
+                $templates[$name] = (object)array(
+                    'relPath'  => $path . DIRECTORY_SEPARATOR . basename($file),
+                    'absPath'  => $file,
+                    'modifier' =>'public',
+                    'args'     =>''
                 );
             }
+
+            $assetExt = array(
+                'css'  => '.css',
+                'less' => '.less',
+                'js'   => '.js'
+            );
+
+            $ancestor = isset($yaml['extends'])
+                ? $yaml['extends']
+                : null
+            ;
+
+            $r = $ancestor
+                ? new ReflectionClass($ancestor)
+                : null
+            ;
+
+            # ===  ASSETS =====
             $assets = array();
+            foreach ($templates as $name => $tpl) {
+                foreach ($assetExt as $type => $ext) {
+                    $method = 'asset_' . $name . '_' . $type;
+                    if (isset($all[$ext][$name])) {
+                        $file = $all[$ext][$name];
+                        $assets[] = (object)array(
+                            'override' => true,
+                            'name'     => $name,
+                            'relPath'  => $path . DIRECTORY_SEPARATOR . basename($file),
+                            'absPath'  => $file,
+                            'type'     => $type,
+                            'method'   => $method
+                        );
+                    } else if (!$ancestor || !$r->hasMethod($method)) {
+                        $assets[] = (object)array(
+                            'override' => false,
+                            'name'    => $name,
+                            'type'    => $type,
+                            'method'  => $method
+                        );
+                    }
+                }
+            }
+
             $class = (object)array(
                 'both' => $both,
-                'name' => $name,
-                'extends' => $yaml['extends'],
-                'oxyName' => $name . self::OXYGEN_SUFFIX,
+                'name' => $className,
+                'extends' => $ancestor,
+                'oxyName' => $className . self::OXYGEN_SUFFIX,
                 'templates' => $templates,
                 'assets' => $assets
             );
+
             try {
                 $generated = $this->get_oxy($class);
                 $f = fopen($genPath,'w+');
