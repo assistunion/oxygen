@@ -5,10 +5,14 @@
         const JQUERY_WRAPPER = 'jQuery(function($){
             var templateClass="{0}"
               , componentClass="{1}"
-              , templateName="{2}";
+              , templateName="{2}"
+            ;
             $(templateClass).each(function(){
                var $this = $(this);
-               {3}
+               if(typeof(this.oxygenized) === "undefined"){
+                  {3}
+                  this.oxygenized = true;
+               }
             });
         })';
         public function __construct() {
