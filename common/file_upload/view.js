@@ -1,8 +1,12 @@
 var $a = $this.find('a.test');
 
 $a.click(function(){
-    remoteCall('class',function(err,data){
-        console.log(data);
+    $this.remote('RpcDemo',{x:123},function(err,data){
+        if(err) {
+            console.log('Got Error:' + err);
+        } else {
+            console.log(data);
+        }
     });
 });
 

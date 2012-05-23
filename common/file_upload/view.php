@@ -1,4 +1,4 @@
-<?o(array('rpc'=>$this->go()))?>
+<?o()?>
 <div class="fileScope">Upload for <?=$this->fileScope?></div>
 <form class="upload std-form" enctype="multipart/form-data" method="post" action="<?=$this->go()?>">
 	<label><span>Format:</span><select name="format">
@@ -7,9 +7,9 @@
 		<?endforeach?>
 	</select></label>
 	<label><span>Select file:</span><input type="file" name="file"/></label>
-    <a class="test">Test</a>
 	<input type="submit" name="upload" value="Upload"/>
 </form>
+<a class="test">Test-RPC</a>
 <?if($this->child):?>
 	<?$this->put_selected_file($this->child)?>
 	<?$this->child->put_view()?>

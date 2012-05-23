@@ -29,7 +29,16 @@
 			return $this->scope->{$obj['handler_class']}($obj['handler_args'],$obj['title'],$obj['id']);
 		}
 
+		public function rpc_RpcDemo($arg) {
+			//throw new Exception('ZZZ');
+			$this->flash('Hello');
+			return array('hello-from-rpc'=>$arg);
+		}
+
 		public function getFileFormats() {
+
+			//$ff = $this->scope->connection['fpngw2d/file_upload_formats'].getData('ff');
+
 			return $this->scope->connection->runQuery(
 				'select * from <db>.file_upload_formats',
 				array_merge($this->scope->dbParam,array()),
