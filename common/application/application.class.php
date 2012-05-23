@@ -9,6 +9,14 @@
             $this->auth = $this->scope->__authenticated();
         }
 
+        public function rpc_clearFlash() {
+            $this->scope->SESSION['oxygen-flash-messages'] = array();
+        }
+        
+        public function rpc_getFlash(){
+            return $this->scope->SESSION->get('oxygen-flash-messages',array());
+        }
+
 		public function configure($x) {
 			$x['public']->Dummy('Public page');
             switch($this->auth->role) {

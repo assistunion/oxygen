@@ -12,6 +12,10 @@
             return 'database';
         }
 
+        public function getDefaultView() {
+            return 'as_table';
+        }
+
 		public function configure($x){
             $x['{table:url}']->Table($this->model['tables']);
 		}

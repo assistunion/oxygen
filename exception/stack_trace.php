@@ -1,6 +1,6 @@
 <table class="trace">
 <?$trace=$this->getWrapTrace()?>
-<?if($trace[6]['function'] ==='__assert' && !$trace[6]['args'][0]):?>
+<?if(isset($trace[6]) && $trace[6]['function'] ==='__assert' && !$trace[6]['args'][0]):?>
 <?$countdown=8?>
 <?else:?>
 <?$countdown=0?>

@@ -1,3 +1,6 @@
+<?if($this->child):?>
+<?$this->child->put()?>
+<?else:?>
 <table class="oxygen-table">
 <?$this->put_table_header()?>
 <tbody>
@@ -6,3 +9,4 @@
 <?endforeach?>
 </tbody>
 </table>
+<?endif?>
