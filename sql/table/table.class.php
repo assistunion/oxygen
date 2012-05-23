@@ -51,8 +51,16 @@
             ));
         }
 
-        public function getKeys() {
-            return array();
+        public function getKeys($alias) {
+            $result = array();
+            foreach($this['keys'] as $key => $columns) {
+                $k = array();
+                foreach($columns as $name => $col) {
+                    $k[$name][] = $alias . '.' . $name;
+                }
+                $result[] = $k;
+            }
+            return $result;
         }
 
         private function ensurePolicyLoaded() {
