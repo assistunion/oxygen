@@ -28,6 +28,10 @@
             return 'database_table';
         }
 
+        public function getDefaultView() {
+            return 'as_table';
+        }
+
         public function getData($alias) {
             $from[$alias] = array(
                 'name' => $this->fullName,
