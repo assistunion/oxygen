@@ -14,6 +14,12 @@
 
         public $scope = null;
 
+        public function flash($message) {
+            $messages = $this->scope->SESSION->get('oxygen-flash-messages',array());
+            $messages[] = $message;
+            $this->scope->SESSION['oxygen-flash-messages'] = $messages;
+        }
+
         public function __call($method, $args) {
             if($method=='download'){
                 echo 'HERE';

@@ -13,7 +13,7 @@
     define('OXYGEN_XML_RESPONSE',4);
     define('OXYGEN_REDIRECT_RESPONSE',5);
 
-    function o($tag = 'div', $data=false) {
+    function o($tag = 'div', $data=array()) {
         if(is_array($tag)) {
             $data = $tag;
             $tag = 'div';

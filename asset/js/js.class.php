@@ -9,7 +9,6 @@
             ;
             $(templateClass).each(function(){
                var $this = $(this);
-               var remoteCall = function(m,d,cb){return $this.oxygenRemoteCall(m,d,cb)};
                if(typeof(this.oxygenized) === "undefined"){
                   {3}
                   this.oxygenized = true;
