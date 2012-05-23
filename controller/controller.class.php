@@ -119,6 +119,7 @@
         }
 
         public function post() {
+            return htmlResponse(array($this,'put_embed_view'));
             $location = $this->go();
             return redirectResponse($location);
         }

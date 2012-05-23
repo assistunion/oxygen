@@ -12,10 +12,20 @@
             return self::$stack[--self::$sp];
         }
 
-        public static function open($tag = 'div'){
+        public static function open($tag = 'div', $data = false){
+            if(is_array($tag)) {
+                $data = $tag;
+                $tag = 'div';
+            }
             $call = self::$stack[self::$sp-1];
             $call->stack[$call->sp++] = $tag;
-            echo '<' . $tag . ' class="' . self::getCssClass() . '">';
+            echo '<' . $tag . ' class="' . self::getCssClass() . '"';
+            if(is_array($data)) {
+                foreach ($data as $key => $value) {
+                    echo ' data-' . $key . '="' . htmlspecialchars(json_encode($value)) . '"';
+                }
+            }
+            echo '>';
         }
 
         public static function cssClassFor($class, $name) {

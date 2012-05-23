@@ -5,6 +5,10 @@ var $document = $(document)
   , $footer = $('div.oxy-footer')
  ;
 
+$.oxygenRpc = function(component,method,data,cb) {
+    
+}
+
 function updateLayout() {
     var clientHeight = $document.height()-$header.height()-$footer.height();
     $content.height(clientHeight);

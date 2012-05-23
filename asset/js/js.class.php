@@ -8,7 +8,10 @@
               , templateName="{2}";
             $(templateClass).each(function(){
                var $this = $(this);
-               {3}
+               if(typeof(this.oxygenized) === "undefined"){
+                  {3}
+                  this.oxygenized = true;
+               }
             });
         })';
         public function __construct() {

@@ -12,11 +12,15 @@
     define('OXYGEN_XML_RESPONSE',4);
     define('OXYGEN_REDIRECT_RESPONSE',5);
 
-    function o($tag = 'div') {
+    function o($tag = 'div', $data=false) {
+        if(is_array($tag)) {
+            $data = $tag;
+            $tag = 'div';
+        }
         if($tag{0}=='/'){
             Oxygen::close();
         } else {
-            Oxygen::open($tag);
+            Oxygen::open($tag, $data);
         }
     }
 
