@@ -13,7 +13,7 @@
 		}
 
 		public function post() {
-    		throw new Exception(print_r($this->scope->FILES,true));
+    		throw new Exception(print_r($this->scope->POST,true));
 			return '';
 		}
 
