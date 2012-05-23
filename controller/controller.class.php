@@ -124,19 +124,34 @@
             return redirectResponse($location);
         }
 
+        public function rpc_echo($args) {
+            return $args;
+        }
+
+        public function rpc_class($args) {
+            return get_class($this);
+        }
+
         public function handleRPC($method, $args) {
-            $this->__assert(false,
-                'Remote method {0} is not allowed',
-                $method
-            );
+            $name = 'rpc_' . $method;
+            if(method_exists($this,$name)) {
+                return $result = $this->$name($args);
+            } else {
+                throw $this->scope->Exception("Remote method $method either not exists or is not allowed");
+            }
         }
 
         public function handlePost() {
             $SERVER = $this->scope->SERVER;
             if(isset($SERVER['HTTP_X_OXYGEN_RPC'])) {
-                $method = $SERVER['HTTP_X_OXYGEN_JSON_RPC'];
+                $method = $SERVER['HTTP_X_OXYGEN_RPC'];
                 $args = json_decode(file_get_contents('php://input'));
-                return $this->handleRPC($method,$args);
+                $callback = $this->scope->GET['callback'];
+                try {
+                    return rpcResponse(null,$this->handleRPC($method,$args),$callback);
+                } catch(Exception $e) {
+                    return rpcResponse($e,null,$callback);
+                }
             } else {
                 return $this->post();
             }

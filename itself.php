@@ -7,6 +7,7 @@
     require_once "factory/class/class.class.php";
 
     define('OXYGEN_JSON_RESONSE',1);
+    define('OXYGEN_JSONP_RESPONSE',6);
     define('OXYGEN_TEXT_RESONSE',2);
     define('OXYGEN_HTML_RESONSE',3);
     define('OXYGEN_XML_RESPONSE',4);
@@ -22,6 +23,19 @@
         } else {
             Oxygen::open($tag, $data);
         }
+    }
+
+    function rpcResponse($error,$data, $callback) {
+        $error = $error ? $error->getMessage() : null;
+        $resp = json_encode(array(
+            'data'=>$data,
+            'error'=>$error
+        ));
+        return array(
+            'header' => 'Content-Type: text/javascript; Charset=UTF-8',
+            'type'   => OXYGEN_JSONP_RESPONSE,
+            'body'   => $callback.'('. $resp . ')'
+        );
     }
 
     function jsonResponse($data, $headers = array()) {
