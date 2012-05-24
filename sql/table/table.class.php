@@ -73,7 +73,11 @@
             }
             $this->ensurePolicyLoaded();
             $result = array();
+            $this->flash($this->policy,'debug');
             foreach($this->policy as $intent => $policy) {
+                if($policy === true) {
+                    $policy = array('columns'=>'*','predicate'=>true);
+                }
                 $columns = $policy['columns'];
                 if ($columns === '*') $columns = array('*');
                 $aliased = array();
@@ -123,7 +127,7 @@
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
             //  $x['data']->Data($this->model['data']);
-            $x['{name:url}-KEY']->Key($this->model['keys']);
+            $x['keys']->Keys($this->model['keys']);
         }
 
         public function __complete() {

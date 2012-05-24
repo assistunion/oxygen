@@ -48,8 +48,10 @@
 
 		public function getFileFormats() {
 
-			//$ff = $this->scope->connection['fpngw2d/file_upload_formats'].getData('ff');
-
+			$ff = $this->scope->connection['intranet/file_upload_formats'];
+			$ff->scope->register('Row','TPRO_File');
+			$data = $ff->getData('ff');
+			return $data;
 			return $this->scope->connection->runQuery(
 				'select * from <db>.file_upload_formats',
 				array_merge($this->scope->dbParam,array()),

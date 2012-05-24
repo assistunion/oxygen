@@ -27,6 +27,7 @@
             'Columns'      => 'Oxygen_SQL_Columns',
             'Column'       => 'Oxygen_SQL_Column',
             'Key'          => 'Oxygen_SQL_Key',
+            'Keys'         => 'Oxygen_SQL_Keys',
             'Data'         => 'Oxygen_SQL_Data',
             'Row'          => 'Oxygen_SQL_Row',
             'DataSet'      => 'Oxygen_SQL_DataSet',
