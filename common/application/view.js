@@ -10,39 +10,19 @@ $this.flash = function(d) {
 }
 
 $this.updateFlash = function () {
-    $this.remote('getFlash','',function(err,data){
+    $this.remote('getFlash', function(err,data){
         var clear = false;
         _.each(data,function(d){
             clear = true;
             $this.flash(d);
         });
-        if(clear) $this.remote('clearFlash','',function(){},true);
-    },true);
+        if(clear) $this.remote('clearFlash',function(){}, false);
+    }, false);
 }
 
-if(typeof($.fn.remote)==='undefined'){
-    $.fn.remote = function(method,data,cb,flash) {
-        if(typeof(data)==='function') {
-            cb = data;
-            data = {};
-        }
-        var url = JSON.parse($(this).data('remote'));
-        return $.ajax({
-            url:url,
-            dataType: 'jsonp',
-            headers: { 'X-Oxygen-RPC' : method },
-            data: JSON.stringify(data),
-            type: 'POST',
-            success: function(resp,status,xhr){
-                cb(resp.error,resp.data,status,xhr);
-                if(!flash) {
-                    $this.updateFlash();
-                }
-            }
-        });
-    }
-}
-
+o.on('remote-call-complete',function(){
+    $this.updateFlash();
+});
 
 function updateLayout() {
     var clientHeight = $document.height()-$header.height()-$footer.height();

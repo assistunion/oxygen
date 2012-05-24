@@ -2,10 +2,13 @@
 
     class Oxygen_Asset_JS extends Oxygen_Asset {
 
-        const JQUERY_WRAPPER = 'jQuery(function($){
+        const JQUERY_WRAPPER = 'window.oxygen.$(function($){
             var templateClass="{0}"
               , componentClass="{1}"
               , templateName="{2}"
+              , o = window.oxygen
+              , _ = window.oxygen._
+              , JSON = window.oxygen.JSON
             ;
             $(templateClass).each(function(){
                var $this = $(this);

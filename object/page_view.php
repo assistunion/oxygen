@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html>
 <?
-    $assets->js->addRemote('http://code.jquery.com/jquery-1.7.1.min.js');
-    $assets->js->addRemote('http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.3.3/underscore-min.js');
-    $assets->js->addRemote($this->scope->lib->path('js/json2.js'));
     try {
         $body = $this->get_view();
         $less = $assets->less->compile();
@@ -14,6 +11,7 @@
 ?>
 <head>
 <?=$this->put_html5shim()?>
+<script src="<?=$this->scope->lib->url('js/oxygen.js')?>"></script>
 <?=$this->put_stylesheets()?>
 <?=$this->put_javascripts()?>
 <?if($this instanceof Oxygen_Controller):?>

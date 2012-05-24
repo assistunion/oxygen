@@ -18,7 +18,9 @@
                 $tag = 'div';
             }
             $call = self::$stack[self::$sp-1];
-            $data['remote'] = $call->instance->go() . '/';
+            $remote = $call->instance->go();
+            if($remote != '/')$remote = $remote.'/';
+            $data['remote'] = $remote;
             $data['component'] = $call->name;           
             $call->stack[$call->sp++] = $tag;
             echo '<' . $tag . ' class="' . self::getCssClass() . '"';
