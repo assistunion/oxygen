@@ -14,9 +14,9 @@
 
         public $scope = null;
 
-        public function flash($message) {
+        public function flash($message, $type = 'info') {
             $messages = $this->scope->SESSION->get('oxygen-flash-messages',array());
-            $messages[] = $message;
+            $messages[] = array('message'=>$message, 'type'=>$type);
             $this->scope->SESSION['oxygen-flash-messages'] = $messages;
         }
 

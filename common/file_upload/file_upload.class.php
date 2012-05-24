@@ -10,10 +10,20 @@
             } else {
 	   		  $this->fileScope = $fileScope;
             }
+            $this->hasErrors = false;
 		}
 
 		public function post() {
-    		throw new Exception(print_r($this->scope->POST,true));
+    		try {
+    			$format = $this->requireInt('format');
+    			$file = $this->requireFile('file');
+    			if(!$this->hasErrors){
+    				$this->flash("File uploaded");
+    			}
+    			$this->flash($_FILES,'debug');
+    		} catch (Exception $e) {
+    			$this->flashError("Upload failed:" . $e->getMessage());
+    		}
 			return '';
 		}
 
@@ -31,7 +41,8 @@
 
 		public function rpc_RpcDemo($arg) {
 			//throw new Exception('ZZZ');
-			$this->flash('Hello');
+			$this->flash('Upload message','warning');
+			$this->flash('For debug','debug');
 			return array('hello-from-rpc'=>$arg);
 		}
 

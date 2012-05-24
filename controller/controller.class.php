@@ -29,6 +29,8 @@
         public $model  = null;
         public $parent = null;
 
+        public $hasErrors = false;
+
         public $isCurrent = false;
         public $isActive = false;
         public $child = false;
@@ -445,6 +447,52 @@
         }
 
 		public function configure($routes) {
+        }
+
+        public function requireInt($name,$flash = false) {
+            return $this->requirePost($name,'int',$flash);
+        }
+
+        public function requireFile($name,$flash = false) {
+            return $this->requirePost($name,'file',$flash);
+        }
+
+        public function requirePost($name,$type,$flash = false) {
+            $x = $type === 'file' 
+                ? $this->scope->FILES
+                : $this->scope->POST
+            ;
+            if(isset($x[$name])) {
+                $res = $x[$name];
+                if($type === 'file') {
+                    if(($e = $res['error']) != 0) {
+                        $f = $res['name'];
+                        $fileErrors = array(
+                            UPLOAD_ERR_OK => 'There is no error, the file uploaded with success.',
+                            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
+                            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.',
+                            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded.',
+                            UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+                            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder.',
+                            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+                            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.',
+                        );
+                        $error = $fileErrors[$e];
+                        $this->flashError("Error with file '$f': $error");
+                    }
+                }
+                return $res;
+            } else if ($flash) {
+                $this->flashError($flash);
+            } else {
+                $name = ucfirst($name);
+                $this->flashError("$name is missing");
+            }
+        }
+
+        public function flashError($error) {
+            $this->hasErrors = true;
+            $this->flash($error,"error");
         }
 
 
