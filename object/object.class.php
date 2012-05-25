@@ -20,6 +20,10 @@
             $this->scope->SESSION['oxygen-flash-messages'] = $messages;
         }
 
+        public function clientLog($object){
+            $this->flash($object,'debug');
+        }
+
         public function __call($method, $args) {
             if($method=='download'){
                 echo 'HERE';
