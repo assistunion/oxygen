@@ -337,7 +337,7 @@
                 c.CONSTRAINT_NAME,
                 u.ORDINAL_POSITION
             ");
-            $path = array('database' => 'tables', 'table' => 'keys', 'key' => '*');
+            $path = array('database' => 'tables', 'table' => 'keys', 'key' => 'columns', 'column'=>'*');
             while($row = mysql_fetch_assoc($keys)){
                 $this->structurize($row, $path, $this->model['databases']);
             }

@@ -63,28 +63,70 @@
 				if ($joinType !== false) {
 					$result .= $joinType . ' ';
 				}
-				$result .= self::indent($data->getSelectExpression()) . ' as ' . $alias;
+				$result .= self::indent($data->getSourceExpression()) . ' as ' . $alias;
 				$on = self::buildOn($joins);
 				if ($on !== '') {
 					$result .= "on \n" . self::indent($on);
 				}
 				$result .= "\n";
 			}
+            return $result;
 		}
 
 		public static function buildColumns($columns) {
+            $result = '';
+            foreach($columns as $alias => $value) {
+                $result .= $result === ''
+                    ? ' '
+                    : ', '
+                ;
+                $result .= $value . ' as ' . $alias;
+            }
+            return $result === '' ? false : $result;
+		}
+
+        public static function buildGroup($columns) {
+            $result = '';
+            foreach($columns as $alias => $value) {
+                $result .= $result === ''
+                    ? ' '
+                    : ', '
+                ;
+                $result .= $value;
+            }
+            return $result === '' ? false : $result;
+        }
+
+		public static function buildFilter($predicate) {
+            return false;
+
+		}
+
+		public static function buildOrder($order) {
+            return false;
+
+		}
+
+		public static function buildLimit($limit) {
+            return false;
 
 		}
 
 
+		public static function buildOffset($offset) {
+            return false;
 
-		public function buildSql($meta, $update = false) {
+		}
+
+		public function buildSql($meta, $intent) {
+
+            $from = self::buildDomain($meta['from']);
 
 			$parts = array(
-				'select'   => self::buildColumns($meta['columns']),
-				'from'     => self::buildDomain($meta['domain']),
-				'where'    => self::buildFilter($meta['filter']),
-				'group by' => self::buildColumns($meta['key']),
+				'select'   => self::buildColumns($meta['select'][$intent]),
+				'from'     => self::buildDomain($meta['from']),
+				'where'    => self::buildFilter($meta['where'][$intent]),
+				'group by' => self::buildGroup($meta['keys'][0]),
 				'having'   => self::buildFilter($meta['having']),
 				'order by' => self::buildOrder($meta['order']),
 				'limit'    => self::buildLimit($meta['limit']),

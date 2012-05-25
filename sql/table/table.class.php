@@ -32,12 +32,12 @@
             return 'as_table';
         }
 
+        public function getSourceExpression() {
+            return $this->fullName;
+        }
+
         public function getData($alias) {
-            $from[$alias] = array(
-                'name' => $this->fullName,
-                'type' => 'init',
-                'join' => array()
-            );
+            $from[$alias] = array($this,false,array());
             return $this->scope->DataSet(array(
                 'keys'   => $this->getKeys($alias),
                 'select' => $this->getPolicyColumns($alias),
@@ -56,7 +56,7 @@
             foreach($this['keys'] as $key => $columns) {
                 $k = array();
                 foreach($columns as $name => $col) {
-                    $k[$name][] = $alias . '.' . $name;
+                    $k[$name] = $alias . '.' . $name;
                 }
                 $result[] = $k;
             }
@@ -73,7 +73,6 @@
             }
             $this->ensurePolicyLoaded();
             $result = array();
-            $this->flash($this->policy,'debug');
             foreach($this->policy as $intent => $policy) {
                 if($policy === true) {
                     $policy = array('columns'=>'*','predicate'=>true);
@@ -121,7 +120,27 @@
 
         public function getPolicyPredicates($alias) {
             $this->ensurePolicyLoaded();
-            return array();
+            $result = array();
+            foreach($this->policy as $intent => $resolution){
+                $predicate = $resolution['predicate'];
+                if ($predicate === true) {
+                    $result[$intent] = true;
+                } else if ($predicate === false) {
+                    $result[$intent] = false;
+                } else {
+                    $pred = array();
+                    foreach ($predicate as $key => $value) {
+                        if(is_integer($key)){
+                            $pred[] = $value; //TODO parse and add aliases!
+                        } else {
+                            $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias,$key);
+                            $pred[$columnAlias] = $value;
+                        }
+                    }
+                    $result[$intent] = $pred;
+                }
+            }
+            return $result;
         }
 
         public function configure($x) {
@@ -135,6 +154,7 @@
         	$this->connection = $this->database->connection;
             $this->policy = $this->connection->getPolicy($this->model);
         	$this->scope->table = $this;
+            $this->fullName = $this->database->model['name'] . '.' . $this->model['name'];
         }
 
 
