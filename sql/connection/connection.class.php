@@ -320,7 +320,8 @@
                 c.TABLE_NAME                                                as `table`,
                 c.CONSTRAINT_NAME                                           as `key`,
                 case c.CONSTRAINT_TYPE when 'PRIMARY KEY' then 1 else 0 end as `primary`,
-                u.COLUMN_NAME                                               as `column`
+                u.COLUMN_NAME                                               as `column`,
+                u.ORDINAL_POSITION-1                                        as `ordinal`
             FROM
                 INFORMATION_SCHEMA.TABLE_CONSTRAINTS as c
                 INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE as u
@@ -337,7 +338,7 @@
                 c.CONSTRAINT_NAME,
                 u.ORDINAL_POSITION
             ");
-            $path = array('database' => 'tables', 'table' => 'keys', 'key' => 'columns', 'column'=>'*');
+            $path = array('database' => 'tables', 'table' => 'keys', 'key' => 'columns', 'ordinal'=>'*');
             while($row = mysql_fetch_assoc($keys)){
                 $this->structurize($row, $path, $this->model['databases']);
             }

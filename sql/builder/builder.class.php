@@ -78,7 +78,7 @@
             foreach($columns as $alias => $value) {
                 $result .= $result === ''
                     ? ' '
-                    : ', '
+                    : ",\n"
                 ;
                 $result .= $value . ' as ' . $alias;
             }
@@ -98,8 +98,24 @@
         }
 
 		public static function buildFilter($predicate) {
-            return false;
-
+            if($predicate === true) return false;
+            if($predicate === false) return '(1=2)';
+            if(is_string($predicate)) $predicate = array($predicate);
+            if(count($predicate)===0) return false;
+            $res = '';
+            foreach($predicate as $key=>$value) {
+                if (is_integer($key)) {
+                    $c = $value;
+                } else {
+                    $c = $key . '=\'' . mysql_real_escape_string($value) . '\'';
+                }
+                $res .= $res === '' 
+                    ? ''
+                    : ' and '
+                ;
+                $res .= '(' . $c . ')';
+            }
+            return $res;
 		}
 
 		public static function buildOrder($order) {
@@ -188,32 +204,39 @@
 			return $base->connection->getData($meta, $sql);
 		}
 
-		public function buildWhere($base, $condition) {
-			$where = $base->getFilter();
+		public function addWhere($meta, $condition) {
+			$where = $meta['where'];
+            $cond = array();
 			if(is_string($condition)) $condition = array($condition);
 			foreach($condition as $key => $value) {
 				if(is_integer($key)) {
-					$where[] = $value;
+					$cond[] = $value;
 				} else {
-					$where[] = $key . ' = \'' . mysql_real_escape_string($value) . '\'';
+					$cond[] = $key . ' = \'' . mysql_real_escape_string($value) . '\'';
 				}
 			}
-			$meta = $base->getMetaData();
-			$meta['filter'] = $where;
-			$sql = $this->buildSql($meta);
-			return $base->connection->getData($meta, $sql);
+            foreach($where as $intent => $w) {
+                $p = $where[$intent];
+                if ($p === true) {
+                    $where[$intent] = $cond;
+                } else if ($p !== false ){
+                    $where[$intent] = array_merge($p,$cond);
+                }
+            }
+			$meta['where'] = $where;
+			return $meta;
 		}
 
-		public function buildGroupBy($base, $newKey, $aggregates) {
+		public function addGroupBy($base, $newKey, $aggregates) {
 		}
 
-		public function buildOrderBy($base, $order, $stable = false) {
+		public function addOrderBy($base, $order, $stable = false) {
 		}
 
-		public function buildSlice($base, $offset, $limit) {
+		public function addSlice($base, $offset, $limit) {
 		}
 
-		public function buildJoin($base, $alias, $join) {
+		public function addJoin($base, $alias, $join) {
 		}
 
 

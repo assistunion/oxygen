@@ -44,7 +44,7 @@
                 'from'   => $from,
                 'where'  => $this->getPolicyPredicates($alias),
                 'group'  => false,
-                'having' => false,
+                'having' => true,
                 'order'  => false,
                 'offset' => false,
                 'limit'  => false
@@ -56,7 +56,7 @@
             foreach($this['keys'] as $key => $columns) {
                 $k = array();
                 foreach($columns as $name => $col) {
-                    $k[$name] = $alias . '.' . $name;
+                    $k[$name] = $alias . '.' . $col->model['column'];
                 }
                 $result[] = $k;
             }
@@ -145,7 +145,6 @@
 
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
-            //  $x['data']->Data($this->model['data']);
             $x['keys']->Keys($this->model['keys']);
         }
 

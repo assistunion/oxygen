@@ -17,6 +17,7 @@
 			if ($this->internal->valid()) return true;
 			while ($r = next($this->routes)) {
 				$this->internal = $r->getIterator();
+                $this->internal->rewind();
 				if($this->internal->valid()) return true;
 			}
 			$this->internal = null;
@@ -50,6 +51,7 @@
 			reset($this->routes);
 			if($r = current($this->routes)){
 				$this->internal = $r->getIterator();
+                $this->internal->rewind();
 			} else {
 				$this->internal = null;
 			}

@@ -2,10 +2,10 @@
     class Oxygen_Router extends Oxygen_Collection {
 
         const TYPES_REGEXP = '/^(?:(int)|(str)|(url)|(any)|\/([^\/]*(?:\\\\\/[^\/]*)*)\/)$/';
-        const PARAM_REGEXP = '/{([0-9A-Za-z_]+):([^{}]+)}/';
+        const PARAM_REGEXP = '/{([0-9A-Z\.a-z_]+):([^{}]+)}/';
 
         const PARAM_GUARD_REPLACE = '#\\1#';
-        const PARAM_GUARD_REGEXP  = '/#([0-9A-Za-z_]+)#/e';
+        const PARAM_GUARD_REGEXP  = '/#([0-9A-Z\.a-z_]+)#/e';
 
         const INT_REGEXP_BARE = '[0-9]+';
         const STR_REGEXP_BARE = '[^\/]+';
@@ -14,7 +14,7 @@
 
         const SINGLE     = 0;
         const COLLECTION = 1;
-        const ARRAY_TYPE = 2; 
+        const ARRAY_TYPE = 2;
 
         const INVALID_PARAM_TYPE = 'Invalid parameter type {0}';
 
@@ -166,7 +166,7 @@
                 $key = $this->parseKey($offset);
                 if(!isset($this->data[$offset])) {
                     $this->data[$offset] = $this->wrap($key);
-                }               
+                }
                 return $this->data[$offset];
             } else {
                 return $this->wrap(
@@ -189,7 +189,7 @@
             $this->ensureAuto();
             return count($this->data);
         }
-        
+
         private function ensureAuto() {
             if(!$this->autoPopulate) return;
             if(count($this->data)>0) return;
@@ -238,7 +238,7 @@
             if(0 < preg_match_all(self::PARAM_REGEXP, $this->pattern, $match)){
                 $names = $match[1];
                 $types = $match[2];
-                $params = array();
+                $params = array();   
                 foreach($names as $i => $name){
                     if(isset($params[$name])) {
                         $this->throw_Exception(self::ROUTE_PARAM_REDEFINED);
