@@ -36,8 +36,8 @@
 		}
 
 		public function count() {
-			$this->flash('Count');
-			return 0;
+			$res = $this->connection->rawQueryArray($this->sql['count']);
+			return $res[0]['count'];
 		}
 
 		public function getColumnNames() {	}
@@ -86,7 +86,7 @@
 		public function offsetUnset($offset) {
 			throw $this->scope->Exception('Delete via DataSet is not implemented yet');
 		}
-        
+
 		public function __construct($meta) {
             $this->mainAlias = key($meta['from']);
 			$this->meta = array_merge(self::$defaults, $meta);
@@ -96,6 +96,7 @@
 			$this->connection = $this->scope->connection;
 			$this->builder = $this->connection->builder;
 			$this->sql['select'] = $this->builder->buildSql($this->meta,'select');
+			$this->sql['count'] = $this->builder->buildSql($this->meta,'select',true);
 		}
 
 		public function makeRow($data) {

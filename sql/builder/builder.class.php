@@ -86,6 +86,7 @@
 		}
 
         public static function buildGroup($columns) {
+        	if ($columns === false) return false;
             $result = '';
             foreach($columns as $alias => $value) {
                 $result .= $result === ''
@@ -109,7 +110,7 @@
                 } else {
                     $c = $key . '=\'' . mysql_real_escape_string($value) . '\'';
                 }
-                $res .= $res === '' 
+                $res .= $res === ''
                     ? ''
                     : ' and '
                 ;
@@ -134,15 +135,36 @@
 
 		}
 
-		public function buildSql($meta, $intent) {
+		public function getRealGroup($group, $keys) {
+			if ($group === false) return false;
+			foreach($keys as $key) {
+				// if group contains all subparts of any key we can throw it away
+				if(count(array_intersect($group, $key))===count(count($key))) {
+					return false;
+				}
+			}
+			return $group;
+		}
+
+		public function buildSql($meta, $intent, $onlyCount = false) {
+			$realGroup = $this->getRealGroup($meta['group'],$meta['keys']);
+			if ($onlyCount) {
+				if($realGroup === false) {
+					$select = ' count(*) as count ';
+				} else {
+					$select = ' 1 ';
+				}
+			} else {
+				$select  = self::buildColumns($meta['select'][$intent]);
+			}
 
             $from = self::buildDomain($meta['from']);
 
 			$parts = array(
-				'select'   => self::buildColumns($meta['select'][$intent]),
+				'select'   => $select,
 				'from'     => self::buildDomain($meta['from']),
 				'where'    => self::buildFilter($meta['where'][$intent]),
-				'group by' => self::buildGroup($meta['keys'][0]),
+				'group by' => self::buildGroup($realGroup),
 				'having'   => self::buildFilter($meta['having']),
 				'order by' => self::buildOrder($meta['order']),
 				'limit'    => self::buildLimit($meta['limit']),
@@ -154,7 +176,11 @@
 					$sql .= $section . "\n" . self::indent($content) . "\n";
 				}
 			}
-			return $sql;
+			if ($onlyCount && $select === ' 1 ') {
+				return "select count(*) as count from ($sql) as t";
+			} else {
+				return $sql;
+			}
 		}
 
 		public function buildSelect($base, $projection) {
