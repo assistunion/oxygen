@@ -1,1 +1,0 @@
-<script id="oxygen-serialization" type="text/x-php-serialized"><?=$this->put_data()?></script>
