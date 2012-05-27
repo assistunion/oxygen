@@ -1,3 +1,5 @@
 .idea/
 *.oxy.php
+!oxygen.oxy.php
+
 

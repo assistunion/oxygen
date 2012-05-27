@@ -1,12 +1,18 @@
 extends: ~
 
+scope:
+    Object: Oxygen_Object
+    Exception: Exception
+    Scope: Oxygen_Scope
+    Controller: Oxygen_Controller
+
 views:
     oxy:
         access: public
         args: { class: Object }
         info: Renders template
 
-    exception: 
+    exception:
         access: public
         args: { ex: Exception }
         info: Renders given exception

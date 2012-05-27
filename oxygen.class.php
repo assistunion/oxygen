@@ -25,8 +25,9 @@
         }
     }
 
+    require "oxygen.oxy.php";
 
-	class Oxygen {
+	class Oxygen extends Oxygen_ {
 
         const OXYGEN_SUFFIX = '_';
 
@@ -120,7 +121,7 @@
             }
 
             # ===  VIEWS ====
-            $yamlViews = isset($yaml['views']) 
+            $yamlViews = isset($yaml['views'])
                 ? $yaml['views']
                 : array()
             ;
@@ -181,10 +182,18 @@
                 }
             }
 
+            # === SCOPE ===
+
+            $scope = isset($yaml['scope'])
+                ? $yaml['scope']
+                : false;
+            ;
+
             $class = (object)array(
                 'both' => $both,
                 'name' => $className,
                 'extends' => $ancestor,
+                'scope' => $scope,
                 'oxyName' => $className . self::OXYGEN_SUFFIX,
                 'views' => $views,
                 'assets' => $assets
@@ -272,11 +281,10 @@
             define('OXYGEN_JS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('js')));
             $scope = new Oxygen_Scope();
             $scope->Oxygen = array($this,'itself');
-            $scope->Object = 'Oxygen_Object';
-            $scope->Exception = 'Exception';
             $scope->o = $this;
             $scope->startedAt = $startedAt;
             $this->scope = $scope;
+            $this->scope->__set(self::$__oxygenScope);
 		}
 
 		public function compile() {

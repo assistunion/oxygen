@@ -7,6 +7,18 @@
 
     class <?=$class->oxyName?> <?if($class->extends):?>extends <?=$class->extends?><?endif?> {
 
+        # SCOPE:
+        <?if(is_array($class->scope)):?>
+
+        public static $__oxygenScope = array(
+<?foreach($class->scope as $key => $value):?>
+            <?=var_export($key)?> => <?=var_export($value)?>,
+<?endforeach?>
+        );
+        <?else:?>
+        public static $__oxygenScope = <?var_export($class->scope)?>;
+        <?endif?>
+
         # BEGIN ASSETS:
 <?foreach($class->assets as $asset):?>
             <?=$class->views[$asset->name]->access?> function asset_<?=$asset->name?>_<?=$asset->type?>() {<?

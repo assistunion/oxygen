@@ -17,8 +17,16 @@
 			}
 		}
 
-		public function __set($name, $value) {
-			if (isset($this->entries[$name])) {
+		public function __set($name, $value = true) {
+            if(is_array($name)) {
+                foreach($name as $key => $value) {
+                    if(is_integer($key)){
+                        $this->__set($value, true);
+                    } else {
+                        $this->__set($key, $value);
+                    }
+                }
+            } else if (isset($this->entries[$name])) {
 				throw $this->Exception("Duplicate entry $name");
 			} else {
 				$this->entries[$name] = $value;

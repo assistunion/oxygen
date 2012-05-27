@@ -1,14 +1,17 @@
 extends: ~
 
+
+scope: false # NEVER SET IT FOR Oxygen_Object
+
 views:
     short_title:
         info: "Small title of $this, used in submenu captions"
 
     full_title:
-        info: "Full title of $this. Suitable for usage in page title" 
+        info: "Full title of $this. Suitable for usage in page title"
 
     page_view:
-        info: "Renders full HTML documnet representation suitable for displaying in browser"  
+        info: "Renders full HTML documnet representation suitable for displaying in browser"
 
     view:
         info: "Generic view of $this, suitable for embedding into other views"
