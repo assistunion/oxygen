@@ -17,13 +17,26 @@
                 $data = $tag;
                 $tag = 'div';
             }
+            preg_match_all('/(([A-Za-z_]+)="([^"]+)")/', $tag, $attrs);
+            preg_match_all('/\.([A-Za-z_0-9]+)/', $tag, $classes);
+            $classes = $classes[1];
+            preg_match('/^[A-Za-z:_0-9]+/', $tag, $tagm);
+            $tag  = $tagm[0];
+            $attrs = $attrs[1];
             $call = self::$stack[self::$sp-1];
             $remote = $call->instance->go();
             if($remote != '/')$remote = $remote.'/';
             $data['remote'] = $remote;
-            $data['component'] = $call->name;           
+            $data['component'] = $call->name;
             $call->stack[$call->sp++] = $tag;
-            echo '<' . $tag . ' class="' . self::getCssClass() . '"';
+            echo '<' . $tag . ' class="' . self::getCssClass();
+            foreach($classes as $class) {
+                echo ' '. $class;
+            }
+            echo '"';
+            foreach ($attrs as $a) {
+                echo ' '.$a;
+            }
             if(is_array($data)) {
                 foreach ($data as $key => $value) {
                     echo ' data-' . $key . '="' . htmlspecialchars(json_encode($value)) . '"';
