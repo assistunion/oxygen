@@ -1,11 +1,9 @@
-<?o()?>
-	<div class="oxy-wrap">
-        <?$this->put_flash()?>
-		<?$this->put_header()?>
-		<?$this->put_menu()?>
-		<?$this->put_content()?>
-	</div>
-<?o('/')?>
-<?$this->put_footer()?>
+<?o('table')?>
+<tr><?$this->put_header()?></tr>
+<tr><?$this->put_menu()?><?$this->put_content()?></tr>
+<tr><?$this->put_footer()?></tr>
+
+
+
 
 

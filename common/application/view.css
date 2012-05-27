@@ -43,23 +43,3 @@ html, body {
 	height: 100%;
 }
 
-div.oxy-footer {
-	position: relative;
-	float: left;
-	width: 100%;
-	min-height: 50px;
-	margin-top: -51px;
-	background-color: #FFF;
-	box-shadow: inset 0px 20px 40px #EEE;
-	border-top: 1px solid #CCC;
-	text-align: center;
-}
-
-div.oxy-footer div.copy {
-	margin: 20px auto;
-	font-family: Verdana;
-	font-size: 10px;
-	color: #888;
-
-}
-

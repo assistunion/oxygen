@@ -1,3 +1,2 @@
-<div class="oxy-footer">
-	<div class="copy">&copy; <?$this->put_copyright()?></div>
-</div>
+<?o('td[colspan="2"]')?>
+<div class="copy">&copy; <?$this->put_copyright()?></div>
