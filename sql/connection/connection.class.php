@@ -215,11 +215,22 @@
             }
         }
 
+        public function formatQuery($sql, $params = array()) {
+            return preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
+                "'\\1' === '{' ? ('\\''.mysql_real_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
+        }
+
 		public function paramQuery($sql, $params = array()) {
-            $sql = preg_replace('/([{<])([A-Za-z0-9_]*?)([>}])/e',
-                "'\\1' === '{' ? ('\\''.mysql_escape_string(\$params['\\2'],\$this->link).'\\'') : \$params['<\\2>']",$sql);
-            return $this->rawQuery($sql);
+            return $this->rawQuery($this->formatQuery($sql, $params));
 		}
+
+        public function lastInsertId() {
+            return mysql_insert_id($this->link);
+        }
+
+        public function lastAffectedRows() {
+            return mysql_affected_rows($this->link);
+        }
 
         public function paramQueryArray($sql, $params = array(), $key = false) {
             return $this->resultToArray($this->paramQuery($sql, $params),$key);

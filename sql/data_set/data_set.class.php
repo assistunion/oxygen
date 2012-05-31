@@ -92,6 +92,14 @@
 			$this->meta = array_merge(self::$defaults, $meta);
 		}
 
+		public function where($condition) {
+			return $this->scope->DataSet($this->builder->addWhere($this->meta,$condition));
+		}
+
+		public function slice($offset,$limit) {
+			return $this->scope->DataSet($this->builder->addSlice($this->meta, $offset, $limit));
+		}
+
 		public function __complete() {
 			$this->connection = $this->scope->connection;
 			$this->builder = $this->connection->builder;

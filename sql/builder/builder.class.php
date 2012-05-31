@@ -125,14 +125,13 @@
 		}
 
 		public static function buildLimit($limit) {
-            return false;
+            return $limit;
 
 		}
 
 
 		public static function buildOffset($offset) {
-            return false;
-
+            return $offset;
 		}
 
 		public function getRealGroup($group, $keys) {
@@ -148,8 +147,9 @@
 
 		public function buildSql($meta, $intent, $onlyCount = false) {
 			$realGroup = $this->getRealGroup($meta['group'],$meta['keys']);
+            $moves = ($meta['offset'] !== false || $meta['limit'] !== false);
 			if ($onlyCount) {
-				if($realGroup === false) {
+				if($realGroup === false && !$moves) {
 					$select = ' count(*) as count ';
 				} else {
 					$select = ' 1 ';
@@ -167,8 +167,8 @@
 				'group by' => self::buildGroup($realGroup),
 				'having'   => self::buildFilter($meta['having']),
 				'order by' => self::buildOrder($meta['order']),
-				'limit'    => self::buildLimit($meta['limit']),
-				'offset'   => self::buildOffset($meta['offset'])
+                'limit'    => self::buildLimit($meta['limit']),
+                'offset'   => self::buildOffset($meta['offset'])
 			);
 			$sql = '';
 			foreach ($parts as $section => $content) {
@@ -260,6 +260,18 @@
 		}
 
 		public function addSlice($base, $offset, $limit) {
+            $meta = $base;
+            if($base['offset'] === false && $offset === 0) {
+                $meta['limit'] = $limit;
+                return $meta;
+            }
+            $meta['offset'] = $base['offset'] + $offset;
+            if($offset + $limit < $base['limit'] || $base['limit'] === false) {
+                $meta['limit'] = $limit;
+            } else {
+                $meta['limit'] = max(min($limit, $base['limit'] - $offset),0);
+            }
+            return $meta;
 		}
 
 		public function addJoin($base, $alias, $join) {

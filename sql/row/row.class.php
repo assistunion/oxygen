@@ -61,7 +61,7 @@
                 $this->current[$data] = $value;
             } else if(is_array($data)) {
                 foreach($data as $k => $d) {
-                    if(!isset($value[$k])) {
+                    if(!array_key_exists($k,$value)) {
                         throw $this->scope->Exception(
                             Oxygen_Utils_Text::format(self::MISSING_DATA,$k)
                         );
@@ -74,8 +74,8 @@
         public function offsetGet($data) {
             if(is_string($data)) {
                 $trial = $this->mainAlias . '.' . $data;
-                if(isset($this->current[$trial])) return $this->current[$trial];
-                if(isset($this->current[$data])) return $this->current[$data];
+                if(array_key_exists($trial,$this->current)) return $this->current[$trial];
+                if(array_key_exists($data,$this->current)) return $this->current[$data];
                 throw $this->scope->Exception(
                     Oxygen_Utils_Text::format(self::MISSING_DATA,$data)
                 );
