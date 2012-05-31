@@ -39,7 +39,10 @@
             }
             if(is_array($data)) {
                 foreach ($data as $key => $value) {
-                    echo ' data-' . $key . '="' . htmlspecialchars(json_encode($value)) . '"';
+                    if(!is_string($value)){
+                        $value = json_encode($value);
+                    }
+                    echo ' data-' . $key . '="' . htmlspecialchars($value) . '"';
                 }
             }
             echo '>';
