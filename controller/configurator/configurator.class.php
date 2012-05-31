@@ -18,16 +18,22 @@
 			return $this->factory->getInstance($args,$this->scope);
 		}
 
+		public function on($name) {
+			$this->controller->setSectionAlias($name, $this->route);
+			return $this;
+		}
+
 		public function __call($class, $args) {
 			$this->factory = $this->scope->resolve($class);
 			$model = isset($args[0])?$args[0]:null;
 			$args[0] = null; // Erase model info;
 			$this->args = $args;
-			return $this->controller->add(
+			$this->controller->add(
 				array($this, 'getWrapped'),
 				$this->route,
 				$model
 			);
+			return $this;
 		}
 	}
 
