@@ -7,7 +7,7 @@
         const PARAM_GUARD_REPLACE = '#\\1#';
         const PARAM_GUARD_REGEXP  = '/#([0-9A-Z\.a-z_]+)#/e';
 
-        const INT_REGEXP_BARE = '[0-9]+';
+        const INT_REGEXP_BARE = '-?[0-9]+';
         const STR_REGEXP_BARE = '[^\/]+';
         const URL_REGEXP_BARE = '[^\/&]+';
         const ANY_REGEXP_BARE = '.+';
@@ -20,7 +20,6 @@
 
         private $extract = '';
         private $regexp = '';
-        private $type = self::COLLECTION;
         private $pattern = '';
         private $data = null;
         private $params = array();
@@ -28,6 +27,9 @@
         private $formatTransform = array();
         private $autoPopulate = false;
         private $autoRoute = '';
+
+        public $type = self::COLLECTION;
+
 
         public function setWrap($wrap, $method = false) {
             if($method !== false) {
@@ -238,7 +240,7 @@
             if(0 < preg_match_all(self::PARAM_REGEXP, $this->pattern, $match)){
                 $names = $match[1];
                 $types = $match[2];
-                $params = array();   
+                $params = array();
                 foreach($names as $i => $name){
                     if(isset($params[$name])) {
                         $this->throw_Exception(self::ROUTE_PARAM_REDEFINED);
