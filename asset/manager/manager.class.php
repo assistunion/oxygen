@@ -29,6 +29,7 @@
                 $etag = '"'.$key.'"';
                 header("Last-Modified: $last_modified");
                 header("ETag: $etag");
+                header("Cache-Control: max-age=3600");
                 $if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ?
                     stripslashes($_SERVER['HTTP_IF_MODIFIED_SINCE']) :
                     false;
@@ -53,7 +54,7 @@
             };
             return true;
         }
-        
+
         public function getKey($call) {
             return $call->class . '::' . $call->name . '::' . $call->component;
         }
