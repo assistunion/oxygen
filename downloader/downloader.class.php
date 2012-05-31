@@ -1,5 +1,6 @@
 <?
 
+
     class Oxygen_Downloader extends Oxygen_Object {
 
         const USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.1) Gecko/20090715 Firefox/3.5.1';
@@ -56,10 +57,9 @@
         public function getJSON($url, $params = array()) {
             $result = trim($this->get($url, $params));
             $result = json_decode($result);
-            $this->__assert(
-                $result !== false,
-                'INVALID JSON'
-            );
+            if ($result === false) {
+                throw $this->scope->Oxygen_Downloader_Excpetion('Invalid JSON');
+            }
             return $result;
         }
     }
