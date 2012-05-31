@@ -1,4 +1,7 @@
 $this.flash = function(d) {
+    if(d.at) {
+        console.log(d.type + ' at '+ d.at);
+    }
     if(d.type != 'debug') {
         var color = ({info:'#CEF',error:'#F44',warning:'#FF0'})[d.type] || '#FFF';
         $('<li>').hide().html(d.message).appendTo($this)
