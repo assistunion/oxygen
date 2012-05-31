@@ -7,9 +7,13 @@
 		private $internal = null;
 		private $key = null;
 
-		public function __construct($controller) {
+		public function __construct($controller, $routes = false) {
 			$this->controller = $controller;
-			$this->routes = $controller->routes;
+			if($routes === false) {
+				$this->routes = $controller->routes;
+			} else {
+				$this->routes = $routes;
+			}
 		}
 
 		public function valid() {
