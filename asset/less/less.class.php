@@ -10,7 +10,7 @@
 
 		const VIRTUAL_WRAPPER = '.{0}{{1}}';
 		const CSS_URL = 'url({0})';
-		
+
 		public function __construct() {
 			parent::__construct('.less');
 			$this->less = new lessc();
@@ -49,7 +49,12 @@
 		}
 
 		protected function process($source) {
-			return $this->less->parse($source);
+			try {
+				return $this->less->parse($source);
+			} catch(Exception $ex) {
+				$this->flash($ex->getMessage,'error');
+				return '/* ERROR */';
+			}
 		}
 	}
 
