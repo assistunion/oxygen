@@ -9,25 +9,39 @@
         const DEFAULT_TO_STRING = '[{0} Object]';
         const ASSERTION_FAILED = 'Assertion failed';
 
-        const CALL_REGEXP = '/^(parent_)?(get_|put_|throw_|new_)(.*)$/';
+        const CALL_REGEXP = '/^(parent_)?(get_|put_|throw_|new_|embed_)(.*)$/';
         const UNKNOWN_METHOD = 'Unknown method {0}->{1}';
 
         public $scope = null;
 
-        public function flash($message, $type = 'info') {
+        public function urlFor($resource) {
+            return $this->scope->loader->urlFor(get_class($this),$resource);
+        }
+
+        public function pathFor($resource) {
+            return $this->scope->loader->pathFor(get_class($this),$resource);
+        }
+
+        private function queueFlash($message, $type = 'info') {
+            $trace = debug_backtrace();
+            $trace = $trace[1];
             $messages = $this->scope->SESSION->get('oxygen-flash-messages',array());
-            $messages[] = array('message'=>$message, 'type'=>$type);
+            $messages[] = array('message'=>$message, 'type'=>$type, 'at' =>
+                    str_replace(DIRECTORY_SEPARATOR,'/',
+                    str_replace($this->scope->OXYGEN_ROOT,'',$trace['file'])). ':' . $trace['line']
+            );
             $this->scope->SESSION['oxygen-flash-messages'] = $messages;
         }
 
-        public function clientLog($object){
-            $this->flash($object,'debug');
+        public function flash($message, $type = 'info') {
+            $this->queueFlash($message, $type);
+        }
+
+        public function log($object){
+            $this->queueFlash($object,'debug');
         }
 
         public function __call($method, $args) {
-            if($method=='download'){
-                echo 'HERE';
-            }
             $this->__assert(
                 preg_match(self::CALL_REGEXP, $method, $match),
                 self::UNKNOWN_METHOD,
@@ -36,9 +50,6 @@
             );
             $class = get_class($this);
             if ($match[1] !== '') $class = get_parent_class($this);
-            if(!is_string($match[2])){
-                echo 'HERE';
-            }
             return $this->{$match[2]}($match[3],$args);
         }
 
@@ -56,6 +67,18 @@
 
         public final function throw_($class, $args) {
             throw $this->new_($class, $args);
+        }
+
+        public final function embed_($name, $args = array(), $class = false) {
+            $assets = $this->scope->assets;
+            $body = $this->get_($name, $args, $class);
+            $less = $assets->less->compile();
+            $js   = $assets->js->compile();
+            return array(
+                'body' => $body,
+                'less' => $less,
+                'js' => $js
+            );
         }
 
         public final function get_($name, $args = array(), $class = false) {
