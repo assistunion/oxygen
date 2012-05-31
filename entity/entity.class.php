@@ -1,6 +1,6 @@
 <?
 
-    class Oxygen_Model extends Oxygen_Object implements ArrayAccess {
+    class Oxygen_Entity extends Oxygen_Object implements ArrayAccess {
 
         const MISSING_DATA = 'Part of data is missing with key "{0}"';
         const WRONG_ARGUMENT_COUNT = 'Wrong argument count';
@@ -8,6 +8,8 @@
         private $original = array();
         private $current = array();
         private $new = false;
+        private $owner = null;
+        private $mainAlias = '';
 
         public function getDefaults() {
             return array();
@@ -16,7 +18,7 @@
         public function __submit() {
         }
 
-        public function __construct($original = false) {
+        public function __construct($owner, $original = false) {
             if($original === false) {
                 $new = true;
                 $original = array();
@@ -24,6 +26,8 @@
             }
             $this->original = $original;
             $this->current = $original;
+            $this->owner = $owner;
+            $this->mainAlias = $owner->mainAlias;
         }
 
         public function offsetExists($data) {
@@ -57,8 +61,8 @@
                 $this->current[$data] = $value;
             } else if(is_array($data)) {
                 foreach($data as $k => $d) {
-                    if(!isset($value[$k])) {
-                        $this->throwException(
+                    if(!array_key_exists($k,$value)) {
+                        throw $this->scope->Exception(
                             Oxygen_Utils_Text::format(self::MISSING_DATA,$k)
                         );
                     }
@@ -69,11 +73,12 @@
 
         public function offsetGet($data) {
             if(is_string($data)) {
-                if(!isset($this->current[$data])) {
-                    $this->throwException(
-                        Oxygen_Utils_Text::format(self::MISSING_DATA,$k)
-                    );
-                }
+                $trial = $this->mainAlias . '.' . $data;
+                if(array_key_exists($trial,$this->current)) return $this->current[$trial];
+                if(array_key_exists($data,$this->current)) return $this->current[$data];
+                throw $this->scope->Exception(
+                    Oxygen_Utils_Text::format(self::MISSING_DATA,$data)
+                );
                 $result = $this->current[$data];
             } else if(is_array($data)) {
                 $result = array();

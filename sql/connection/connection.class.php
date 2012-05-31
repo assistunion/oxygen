@@ -28,12 +28,11 @@
             'Column'       => 'Oxygen_SQL_Column',
             'Key'          => 'Oxygen_SQL_Key',
             'Keys'         => 'Oxygen_SQL_Keys',
-            'Data'         => 'Oxygen_SQL_Data',
-            'Row'          => 'Oxygen_SQL_Row',
             'DataSet'      => 'Oxygen_SQL_DataSet',
             'Builder'      => 'Oxygen_SQL_Builder',
             'ResultSet'    => 'Oxygen_SQL_ResultSet',
-            'DataIterator' => 'Oxygen_SQL_ResultSet_Iterator'
+            'DataIterator' => 'Oxygen_SQL_ResultSet_Iterator',
+            'Row'          => 'Oxygen_Entity'
         );
 
         public function __construct($config, $refreshSchemata = false) {

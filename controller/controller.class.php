@@ -317,7 +317,7 @@
 		}
 
         public function __toString() {
-            return $this->route;
+            return urldecode($this->route);
         }
 
 		public function offsetSet($offset, $value) {
@@ -346,6 +346,10 @@
             else $this->path = $path;
             $this->parseArgs();
             $this->__routed();
+            // in case if we are rebased - update all existing children;
+            foreach ($this->children as $route => $child) {
+                $child->setPath($this, $routes);
+            }
             return $match[2];
         }
 
@@ -461,6 +465,7 @@
                 $model instanceof Oxygen_Controller,
                 'Explicit child should be instance of Oxygen_Controller'
             );
+            $model->setPath($this,$route);
             return $this->routes[$route] = $this->scope->Router($route, $model);
         }
 

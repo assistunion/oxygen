@@ -1,9 +1,18 @@
 <?
 
-    class Oxygen_Common_Collection extends Oxygen_Common_Controller {
+    class Oxygen_Entity_Collection extends Oxygen_Entity_Controller {
         public function plural($n) {
             if($n === 1) return 'item';
             else return 'items';
+        }
+
+        public function configure($x) {
+            $ks = array();
+            foreach($this->model->meta['keys'][0] as $k=>$v){
+                $ks[] = '{'.$k.':url}';
+            };
+            $key = implode('/',$ks);
+            $x[$key]->Oxygen_Entity_Controller($this->model);
         }
 
         public function rpc_getMore($offset) {

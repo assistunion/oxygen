@@ -1,6 +1,6 @@
 <?
 
-	class Oxygen_Common_Authenticator extends Oxygen_Object {
+	class Oxygen_Common_Auth extends Oxygen_Controller {
 
 		private $session = null;
 		const LOGON_SESSION_PREFIX = 'Logon::';
@@ -12,9 +12,12 @@
 			'user' => false
 		);
 
+		public function getAuthDb() {
+		}
+
 		public function __get($name){
 			return $this->session->get(
-				self::LOGON_SESSION_PREFIX . $name, 
+				self::LOGON_SESSION_PREFIX . $name,
 				self::$defaults[$name]
 			);
 		}
@@ -25,7 +28,7 @@
 
 		public function __set($name, $value) {
 			$this->session->put(
-				self::LOGON_SESSION_PREFIX . $name, 
+				self::LOGON_SESSION_PREFIX . $name,
 				$value
 			);
 		}
@@ -71,4 +74,4 @@
 		}
 	}
 
-?>	
+?>

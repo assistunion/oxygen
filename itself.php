@@ -82,7 +82,7 @@
     function registerOxygenCommons($scope) {
         $array = array(
             'LogonPage' => 'Oxygen_Common_LogonPage',
-            'Authenticator' => 'Oxygen_Common_Authenticator',
+            'Authenticator' => 'Oxygen_Common_Auth',
             'Application' => 'Oxygen_Common_Application',
             'Page' => 'Oxygen_Common_Page'
         );

@@ -53,10 +53,10 @@
 
         public function getKeys($alias) {
             $result = array();
-            foreach($this['keys'] as $key => $columns) {
+            foreach($this->model['keys'] as $name => $key) {
                 $k = array();
-                foreach($columns as $name => $col) {
-                    $k[$name] = $alias . '.' . $col->model['column'];
+                foreach($key['columns'] as $col) {
+                    $k[$col['column']] = $alias . '.' . $col['column'];
                 }
                 $result[] = $k;
             }
@@ -146,6 +146,7 @@
         public function configure($x) {
         	$x['columns']->Columns($this->model['columns']);
             $x['keys']->Keys($this->model['keys']);
+            $x['rows']->Oxygen_Entity_Collection($this->getData($this->model['name']));
         }
 
         public function __complete() {
