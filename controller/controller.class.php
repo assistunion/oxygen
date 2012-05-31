@@ -40,13 +40,16 @@
         protected $route = '';
         protected $path = '';
 
+        protected $sections = array();
+
         private static $implementations = array(
-            'Router'           => 'Oxygen_Router',
-            'Routes'           => 'Oxygen_Controller_Routes',
-            'Configurator'     => 'Oxygen_Controller_Configurator',
-            'Controller'       => 'Oxygen_Controller',
-            'Dummy'            => 'Oxygen_Controller_Dummy',
-            'ChildrenIterator' => 'Oxygen_Controller_Iterator'
+            'Router'            => 'Oxygen_Router',
+            'Routes'            => 'Oxygen_Controller_Routes',
+            'Configurator'      => 'Oxygen_Controller_Configurator',
+            'Controller'        => 'Oxygen_Controller',
+            'ControllerSection' => 'Oxygen_Controller_Section',
+            'Dummy'             => 'Oxygen_Controller_Dummy',
+            'ChildrenIterator'  => 'Oxygen_Controller_Iterator'
         );
 
 		public function __construct($model = null){
@@ -93,6 +96,30 @@
             } else {
                 return $this;
             }
+        }
+
+        public function findUp($class, $includeSelf = false) {
+            $x = $includeSelf
+                ? $this
+                : $this->parent
+            ;
+            while($x) {
+                if ($x instanceof $class) return $x;
+                $x = $x->parent;
+            }
+            return null;
+        }
+
+        public function findDown($class, $includeSelf = false) {
+            $x = $includeSelf
+                ? $this
+                : $this->child
+            ;
+            while($x) {
+                if ($x instanceof $class) return $x;
+                $x = $x->child;
+            }
+            return null;
         }
 
         public function getPathToCurrent() {
@@ -412,6 +439,21 @@
 			$this->configured = true;
 		}
 
+        public function setSectionAlias($alias, $route) {
+            $this->sections[$alias] = $route;
+        }
+
+        public function section($alias) {
+            $this->ensureConfigured();
+            try {
+                $route = $this->sections[$alias];
+                $router = $this->routes[$route];
+                return $this->scope->ControllerSection($this, $router);
+            } catch(Exception $e) {
+                throw $this->scope->Exception("Section $alias is not properly configured or registered");
+            }
+        }
+
         public function addExplicit($route,$model) {
             $index = count($this->routes) + 1;
             $this->index[$index] = $route;
@@ -422,12 +464,22 @@
             return $this->routes[$route] = $this->scope->Router($route, $model);
         }
 
+        public function sectionDefined($name) {
+            return isset($this->sections[$name]);
+        }
+
 		public function add($class, $route, $model) {
             $index = count($this->routes) + 1;
             $this->index[$index] = $route;
-			return $this->routes[$route] = $this->scope->Router(
+            $router = $this->routes[$route] = $this->scope->Router(
 				$route, $model, $class, self::UNWRAP_METHOD
 			);
+            if($router->type !== Oxygen_Router::SINGLE){
+                if(!$this->sectionDefined('data')){
+                    $this->setSectionAlias('data', $route);
+                }
+            }
+            return $router;
 		}
 
 		public function ensureConfigured() {
@@ -437,14 +489,6 @@
 			    $this->postConfigure();
 			}
 		}
-
-        public function urlFor($resource) {
-            return $this->scope->loader->urlFor(get_class($this),$resource);
-        }
-
-        public function pathFor($resource) {
-            return $this->scope->loader->pathFor(get_class($this),$resource);
-        }
 
 		public function configure($routes) {
         }
@@ -458,7 +502,7 @@
         }
 
         public function requirePost($name,$type,$flash = false) {
-            $x = $type === 'file' 
+            $x = $type === 'file'
                 ? $this->scope->FILES
                 : $this->scope->POST
             ;
