@@ -1,0 +1,7 @@
+<?if($this->child):?>
+<?$this->child->put_data_view()?>
+<?else:?>
+<?o()?>
+<?$this->put_header()?>
+<?$this->put_table()?>
+<?endif?>

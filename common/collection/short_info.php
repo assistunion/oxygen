@@ -1,0 +1,1 @@
+<span class="count"><?=$count=count($this)?> <?=$this->plural($count)?> so far</span>

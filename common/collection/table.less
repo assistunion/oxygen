@@ -1,0 +1,101 @@
+clear:both;
+margin: 20px;
+font-size: 13px;
+font-family: sans-serif;
+
+img.loader {
+    display: none;
+}
+
+tr:hover {
+    cursor: pointer;
+    background-color: #FFE;
+    td.link {
+        background-color: #FED;
+    }
+}
+td,th {
+    padding: 4px 8px;
+    border-bottom: 1px solid #EEE;
+    border-top: 1px solid #EEE;
+    border-left: 1px dotted #EEE;
+    border-right: 1px dotted #EEE;
+    &:hover {
+        background-color: #CEE;
+    }
+}
+td.link {
+    &:hover {
+        background-color: #CEE;
+    }
+    text-align: right;
+    background-color: #FFF8F0;
+    a {
+        color: #36C;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+        border-bottom: 1px dotted #36C;
+        &:active {
+            color: red;
+        }
+    }
+}
+th {
+    font-weight: bold;
+    font-size: 14px;
+    color: #A66;
+    background-color: #FFE;
+    border-color: #DCA;
+    box-shadow: inset 0px 0px 5px #DCA;
+}
+
+td.edit-cell {
+    span.empty {
+        background-color: orange;
+        color: white;
+        border-radius: 3px;
+        font-size:10px;
+        padding: 1px;
+        display: inline;
+    }
+    padding: 0px 0px;
+    & > div.edit-wrapper {
+        div.icon {
+            padding: 6px 6px 7px 6px;
+            margin-top: 1px;
+            margin-right: 1px;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 16px;
+            height: 16px;
+            &.accept { background-image: icon(tick); }
+            &.cancel { background-image: icon(bullet_delete); }
+            float: right;
+            opacity: 0.5;
+            cursor: pointer;
+            box-shadow: inset 7px 0px 14px #BDD;
+            &:hover {
+                border-radius: 2px;
+                opacity: 1;
+                background-color: white;
+                box-shadow: 0px 0px 3px #044;
+                border-collapse: separate;
+                -moz-transition: 0.5s;
+                -webkit-transition: 0.5s;
+            }
+        }
+        cursor: text;
+        overflow: auto;
+        background-color: #EFF;
+        box-shadow: inset 1px 1px 3px #244;
+        border-radius: 3px;
+        & > div.edit-placeholder {
+            margin: 4px 8px;
+            outline: none;
+            float: left;
+
+        }
+    }
+}
+
