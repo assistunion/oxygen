@@ -42,7 +42,12 @@
                 foreach ($this->key as $key) {
                     $res[$key] = $this->data[$key];
                 }
-                return $res;
+                reset($res);
+                list($key,$val) = each($res);
+                return count($res)===1
+                    ? $val
+                    : $res
+                ;
             }
         }
 
