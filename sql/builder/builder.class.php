@@ -119,6 +119,25 @@
             return $res;
 		}
 
+        public static function buildSet($updates) {
+            if(is_string($updates)) $updates = array($updates);
+            $res = '';
+            foreach($updates as $key=>$value) {
+                if (is_integer($key)) {
+                    $c = $value;
+                } else {
+                    $c = $key . '=\'' . mysql_real_escape_string($value) . '\'';
+                }
+                $res .= $res === ''
+                    ? ''
+                    : ', '
+                ;
+                $res .= $c;
+            }
+            return $res;
+        }
+
+
 		public static function buildOrder($order) {
             return false;
 
@@ -158,18 +177,25 @@
 				$select  = self::buildColumns($meta['select'][$intent]);
 			}
 
-            $from = self::buildDomain($meta['from']);
+            if ($intent === 'select') {
+    			$parts = array(
+    				'select'   => $select,
+    				'from'     => self::buildDomain($meta['from']),
+    				'where'    => self::buildFilter($meta['where'][$intent]),
+    				'group by' => self::buildGroup($realGroup),
+    				'having'   => self::buildFilter($meta['having']),
+    				'order by' => self::buildOrder($meta['order']),
+                    'limit'    => self::buildLimit($meta['limit']),
+                    'offset'   => self::buildOffset($meta['offset'])
+    			);
+            } else if($intent === 'update') {
+                $parts = array(
+                    'update'   => self::buildDomain($meta['from']),
+                    'set'      => self::buildSet($meta['set']),
+                    'where'    => self::buildFilter($meta['where'][$intent]),
+                );
+            }
 
-			$parts = array(
-				'select'   => $select,
-				'from'     => self::buildDomain($meta['from']),
-				'where'    => self::buildFilter($meta['where'][$intent]),
-				'group by' => self::buildGroup($realGroup),
-				'having'   => self::buildFilter($meta['having']),
-				'order by' => self::buildOrder($meta['order']),
-                'limit'    => self::buildLimit($meta['limit']),
-                'offset'   => self::buildOffset($meta['offset'])
-			);
 			$sql = '';
 			foreach ($parts as $section => $content) {
 				if($content !== false) {

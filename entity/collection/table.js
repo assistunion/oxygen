@@ -156,7 +156,7 @@ function commitEdit($cell) {
     $cell.removeClass('edit-cell');
     cell.editDiv = null;
     if (original != current) {
-        $this.remote('updateCell',{
+        $cell.remote('updateCell',{
             original: original,
             current: current,
             remote: cell.editRemote,

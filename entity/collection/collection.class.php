@@ -58,13 +58,6 @@
             return $result;
         }
 
-        public function rpc_UpdateCell($args) {
-            $remote = $args->remote;
-            $this->log($this->model->meta['keys']);
-            return $args->remote;
-        }
-
-
     }
 
 

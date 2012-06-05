@@ -54,6 +54,14 @@
 			return $this->scope->Router($pattern, $this);
 		}
 
+		public function toOptions() {
+			foreach($this as $key => $value) {
+				$this->flash($key);
+				$result[$key] = $value->getData();
+			}
+			return $result;
+		}
+
 		public function offsetGet($offset) {
 			if(!is_array($offset)) {
 				$ik = $this->getIterationKey();
@@ -94,6 +102,13 @@
 
 		public function where($condition) {
 			return $this->scope->DataSet($this->builder->addWhere($this->meta,$condition));
+		}
+
+		public function update($set, $where = array()) {
+			$meta = $this->builder->addWhere($this->meta, $where);
+			$meta['set'] = $set;
+			$sql = $this->builder->buildSql($meta, 'update');
+			return $sql;
 		}
 
 		public function slice($offset,$limit) {

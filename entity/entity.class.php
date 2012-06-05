@@ -15,7 +15,24 @@
             return array();
         }
 
+        public function getData() {
+            return $this->current;
+        }
+
         public function __submit() {
+            $conn = $this->scope->connection;
+            $update = array();
+            foreach ($this->current as $key => $value) {
+                if($this->original[$key] != $value) {
+                    $update[$key] = $value;
+                }
+            }
+            $where = array();
+            foreach($this->owner->meta['keys'][0] as $c) {
+                $where[$c] = $this->original[$c];
+            }
+            $conn->rawQuery($this->owner->update($update,$where));
+            return $conn->lastAffectedRows();
         }
 
         public function __construct($owner, $original = false) {
