@@ -31,9 +31,30 @@
 
         const OXYGEN_SUFFIX = '_';
 
-		private $classPaths = array();
-
         public $scope;
+
+        private static $stack = array();
+        private static $sp = 0;
+
+        public static function push($instance, $view) {
+            self::$stack[self::$sp++] = (object)array(
+                'instance' => $instance,
+                'view' => $view,
+                'component' => false
+            );
+        }
+
+        public static function pop() {
+            $result = self::$stack[--self::$sp];
+            self::$stack[self::$sp] = null;
+            return $result;
+        }
+
+        public static function open() {
+        }
+
+        public static function close() {
+        }
 
 		public static function getWritableDir($base, $dir) {
 			if(is_array($dir)) $dir = implode(DIRECTORY_SEPARATOR, $dir);
@@ -134,9 +155,10 @@
                 $views[$name] = (object)array(
                     'relPath' => $path . DIRECTORY_SEPARATOR . basename($file),
                     'absPath' => $file,
-                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : 'public',
+                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : 'private',
                     'args'    => isset($yamlView['args']) ? $yamlView['args'] : array(),
-                    'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view')
+                    'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view'),
+                    'assets'  => array()
                 );
             }
 
@@ -158,26 +180,29 @@
 
             # ===  ASSETS =====
             $assets = array();
-            foreach ($views as $name => $tpl) {
+            foreach ($views as $name => &$view) {
                 foreach ($assetExt as $type => $ext) {
                     $method = 'asset_' . $name . '_' . $type;
                     if (isset($all[$ext][$name])) {
                         $file = $all[$ext][$name];
-                        $assets[] = (object)array(
+                        $assets[] = $view['assets'][$method] = (object)array(
                             'override' => true,
                             'name'     => $name,
                             'relPath'  => $path . DIRECTORY_SEPARATOR . basename($file),
                             'absPath'  => $file,
                             'type'     => $type,
-                            'method'   => $method
+                            'access'   => $view['access']
                         );
                     } else if (!$ancestor || !$r->hasMethod($method)) {
-                        $assets[] = (object)array(
-                            'override' => false,
-                            'name'    => $name,
-                            'type'    => $type,
-                            'method'  => $method
-                        );
+                        if ($view['access'] !== 'private') {
+                            $assets[] = $view['assets'][$method] = (object)array(
+                                'override' => false,
+                                'name'    => $name,
+                                'type'    => $type,
+                                'method'  => $method,
+                                'access'   => $view['access']
+                            );
+                        }
                     }
                 }
             }
