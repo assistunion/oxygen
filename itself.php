@@ -25,11 +25,12 @@
         }
     }
 
-    function rpcResponse($error,$data, $callback) {
+    function rpcResponse($error, $ask, $data, $callback) {
         $error = $error ? $error->getMessage() : null;
         $resp = json_encode(array(
-            'data'=>$data,
-            'error'=>$error
+            'data'    => $data,
+            'ask'     => $ask,   // Oxygen Communication Token
+            'error'   => $error
         ));
         return array(
             'header' => 'Content-Type: text/javascript; Charset=UTF-8',
