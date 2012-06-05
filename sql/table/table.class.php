@@ -122,6 +122,9 @@
             $this->ensurePolicyLoaded();
             $result = array();
             foreach($this->policy as $intent => $resolution){
+                if ($resolution === true) {
+                    $resolution = array('predicate' => true, 'columns' => true);
+                }
                 $predicate = $resolution['predicate'];
                 if ($predicate === true) {
                     $result[$intent] = true;
