@@ -22,6 +22,15 @@
             return $this->scope->loader->pathFor(get_class($this),$resource);
         }
 
+        public static function newGuid() {
+            $s = '0123456789abcdef';
+            $r = '';
+            for ($i = 0; $i < 40; $i++) {
+                $r .= $s{mt_rand()%16};
+            }
+            return $r;
+        }
+
         private function queueFlash($message, $type = 'info') {
             $trace = debug_backtrace();
             $trace = $trace[1];
@@ -76,8 +85,8 @@
             $js   = $assets->js->compile();
             return array(
                 'body' => $body,
-                'less' => $less,
-                'js' => $js
+                'less' => $this->scope->OXYGEN_ROOT_URI . '/' . $less . '.less',
+                'js' => $this->scope->OXYGEN_ROOT_URI . '/' . $js . '.js'
             );
         }
 
