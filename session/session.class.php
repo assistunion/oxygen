@@ -1,8 +1,21 @@
 <?
 
-	class Oxygen_Session extends Oxygen_Object 
+	class Oxygen_Session extends Oxygen_Object
 		implements ArrayAccess
 	{
+
+		public function removeRegexp($pattern) {
+			$keys = array_keys($_SESSION);
+			$remove = array();
+			foreach($keys as $key) {
+				if(preg_match($pattern, $key)) {
+					$remove[] = $key;
+				}
+			}
+			foreach($remove as $key) {
+				unset($_SESSION[$key]);
+			}
+		}
 
 		public function put($offset,$value) {
 			$_SESSION[$offset] = serialize($value);
