@@ -43,13 +43,13 @@
         protected $sections = array();
 
         private static $implementations = array(
-            'Router'            => 'Oxygen_Router',
-            'Routes'            => 'Oxygen_Controller_Routes',
-            'Configurator'      => 'Oxygen_Controller_Configurator',
-            'Controller'        => 'Oxygen_Controller',
-            'ControllerSection' => 'Oxygen_Controller_Section',
-            'Dummy'             => 'Oxygen_Controller_Dummy',
-            'ChildrenIterator'  => 'Oxygen_Controller_Iterator'
+            'Router'             => 'Oxygen_Router',
+            'Routes'             => 'Oxygen_Controller_Routes',
+            'Configurator'       => 'Oxygen_Controller_Configurator',
+            'Controller'         => 'Oxygen_Controller',
+            'ControllerSection'  => 'Oxygen_Controller_Section',
+            'Dummy'              => 'Oxygen_Controller_Dummy',
+            'ChildrenIterator'   => 'Oxygen_Controller_Iterator'
         );
 
 		public function __construct($model = null){
@@ -161,10 +161,10 @@
             return get_class($this);
         }
 
-        public function handleRPC($method, $args) {
+        public function handleRPC($method, $args, $client) {
             $name = 'rpc_' . $method;
             if(method_exists($this,$name)) {
-                return $result = $this->$name($args);
+                return $result = $this->$name($args, $client);
             } else {
                 throw $this->scope->Exception("Remote method $method either not exists or is not allowed");
             }
@@ -173,13 +173,23 @@
         public function handlePost() {
             $SERVER = $this->scope->SERVER;
             if(isset($SERVER['HTTP_X_OXYGEN_RPC'])) {
-                $method = $SERVER['HTTP_X_OXYGEN_RPC'];
-                $args = json_decode(file_get_contents('php://input'));
                 $callback = $this->scope->GET['callback'];
+                $method = $SERVER['HTTP_X_OXYGEN_RPC'];
+                $continuation = $SERVER['HTTP_X_OXYGEN_CONTINUATION'];
+                $args = json_decode(file_get_contents('php://input'));
+                if ($continuation === 'new') {
+                    $client = $this->scope->Oxygen_Communication_Client($this, $continuation);
+                } else {
+                    $client = $this->scope->Oxygen_Communication_Client($this, $continuation, $args->ask->digest, $args->ask->result);
+                    $args = $args->args;
+                }
                 try {
-                    return rpcResponse(null,$this->handleRPC($method,$args),$callback);
+                    $result =  $this->handleRPC($method,$args,$client);
+                    return rpcResponse(null, $client->end(), $result, $callback);
+                } catch (Oxygen_Communication_Token $oct) {
+                    return rpcResponse(null, $oct->getData(), null, $callback);
                 } catch(Exception $e) {
-                    return rpcResponse($e,null,$callback);
+                    return rpcResponse($e, null, null, $callback);
                 }
             } else {
                 return $this->post();
