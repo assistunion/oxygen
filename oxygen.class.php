@@ -56,18 +56,70 @@
         public static function close() {
         }
 
-		public static function getWritableDir($base, $dir) {
+        public static function pathFor($path) {
+            return OXYGEN_ROOT . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+        }
+
+        public static function requireFile($relative) {
+            return require_once self::pathFor($relative);
+        }
+
+        public function compileAssets() {
+            $result = array();
+            foreach ($this->scope->assets as $type => $assets) {
+                $names = array();
+                $last = 0;
+                foreach($assets as $css => $asset) {
+                    $time = $asset['class']->compile(
+                        $asset['source'],
+                        $asset['destination'],
+                        $css,
+                        $type,
+                        $asset['last']
+                    );
+                    $last = max($last, $time);
+                    $names[] = $asset['destination'];
+                }
+                $bundle = md5(implode(':',$names));
+                $bundale_path = OXYGEN_ASSET_ROOT 
+                    . DIRECTORY_SEPARATOR . $type 
+                    . DIRECTORY_SEPARATOR . $bundle
+                    . '.' . $type;
+                try {
+                    $m = filemtime($bundale_path);
+                } catch (Oxygen_FileNotFoundException $ex) {
+                    $m = -1;
+                }
+                if ($last > $m) {
+                    $f = fopen($bundale_path,'w');
+                    ftruncate($f, 0);
+                    foreach($names as $source) {
+                        $s = substr($source,strlen(OXYGEN_ASSET_ROOT)+1);
+                        fwrite($f, '/* ' . $s .  " */\n");
+                        fwrite($f, file_get_contents($source));
+                    }
+                    fclose($f);
+                }
+                $result[$type] = $bundale_path;
+            }
+            return $result;
+        }
+
+
+		public static function getWritableDir($base, $dir = '.') {
 			if(is_array($dir)) $dir = implode(DIRECTORY_SEPARATOR, $dir);
 			assert('is_string($dir)');
 			if ($dir !== '.') {
-				self::getWritableDir($base, dirname($dir));
 				$next = $base . DIRECTORY_SEPARATOR . $dir;
 			} else {
 				$next = $base;
 			}
-			if(!file_exists($next)) {
-				mkdir($next);
-			}
+            if(!is_writable($next) || !is_dir($next)) {
+                self::getWritableDir(dirname($next));
+                if(!file_exists($next)) {
+                    mkdir($next);
+                }
+            }
 			return $next;
 		}
 
@@ -141,6 +193,17 @@
                 }
             }
 
+            $ancestor = isset($yaml['extends'])
+                ? $yaml['extends']
+                : null
+            ;
+
+            $ref = $ancestor
+                ? new ReflectionClass($ancestor)
+                : null
+            ;            
+            $ancestor_access = array();
+
             # ===  VIEWS ====
             $yamlViews = isset($yaml['views'])
                 ? $yaml['views']
@@ -148,14 +211,26 @@
             ;
             $views = array();
             foreach ($all['.php'] as $name => $file) {
-                $yamlView = isset($yamlViews[$name])
-                    ? $yamlViews[$name]
-                    : array()
-                ;
+                $defaultAccess = 'private';
+                if ($ref) try {
+                    $m = $ref->getMethod('put_' . $name);
+                    if ($m->isPublic()) $defaultAccess = 'public';
+                    else if ($m->isProtected()) $defaultAccess = 'protected';
+                    else $defaultAccess = 'private';
+                } catch (ReflectionException $re) {
+                }
+                $ancestor_access[$name] = $defaultAccess;
+                if(isset($yamlViews[$name])) {
+                    $yamlView = $yamlViews[$name];
+                    $defaultAccess = 'public';
+                } else {
+                    $yamlView = array();
+                }
                 $views[$name] = (object)array(
-                    'relPath' => $path . DIRECTORY_SEPARATOR . basename($file),
-                    'absPath' => $file,
-                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : 'private',
+                    'relPath' => str_replace(DIRECTORY_SEPARATOR,'/',$path . DIRECTORY_SEPARATOR . basename($file)),
+                    'absPath' => str_replace(DIRECTORY_SEPARATOR,'/',$file),
+                    'path'    => str_replace(DIRECTORY_SEPARATOR,'/',$path),
+                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : $defaultAccess,
                     'args'    => isset($yamlView['args']) ? $yamlView['args'] : array(),
                     'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view'),
                     'assets'  => array()
@@ -168,16 +243,6 @@
                 'js'   => '.js'
             );
 
-            $ancestor = isset($yaml['extends'])
-                ? $yaml['extends']
-                : null
-            ;
-
-            $r = $ancestor
-                ? new ReflectionClass($ancestor)
-                : null
-            ;
-
             # ===  ASSETS =====
             $assets = array();
             foreach ($views as $name => &$view) {
@@ -185,24 +250,37 @@
                     $method = 'asset_' . $name . '_' . $type;
                     if (isset($all[$ext][$name])) {
                         $file = $all[$ext][$name];
-                        $assets[] = $view['assets'][$method] = (object)array(
+                        $assets[] = $view->assets[$method] = (object)array(
                             'override' => true,
                             'name'     => $name,
-                            'relPath'  => $path . DIRECTORY_SEPARATOR . basename($file),
+                            'relPath'  => str_replace(DIRECTORY_SEPARATOR,'/',$path . DIRECTORY_SEPARATOR . basename($file)),
                             'absPath'  => $file,
+                            'baseName' => basename($file),
                             'type'     => $type,
-                            'access'   => $view['access']
+                            'genPath'  => OXYGEN_ASSET_ROOT . DIRECTORY_SEPARATOR 
+                                        . $type . $path . DIRECTORY_SEPARATOR
+                                        . basename($file),
+                            'access'   => $view->access
                         );
-                    } else if (!$ancestor || !$r->hasMethod($method)) {
-                        if ($view['access'] !== 'private') {
-                            $assets[] = $view['assets'][$method] = (object)array(
+                    } else if ($ancestor_access[$name] === 'private') {
+                        if ($view->access !== 'private') {
+                            $assets[] = $view->assets[$method] = (object)array(
                                 'override' => false,
                                 'name'    => $name,
                                 'type'    => $type,
                                 'method'  => $method,
-                                'access'   => $view['access']
+                                'access'   => $view->access
                             );
                         }
+                    } else {
+                        $view->assets[$method] = (object)array(
+                            'override' => false,
+                            'name'    => $name,
+                            'type'    => $type,
+                            'method'  => $method,
+                            'baseName' => $name . $ext,
+                            'access'   => $view->access
+                        );
                     }
                 }
             }
@@ -335,6 +413,11 @@
 			try {
                 $o = $this;
                 $scope = $this->scope;
+                $scope->assets = new ArrayObject(array(
+                    'css'  => array(),
+                    'less' => array(),
+                    'js'   => array()
+                ));
 				include OXYGEN_ROOT . DIRECTORY_SEPARATOR . $name;
 			} catch (Exception $e) {
 				$this->put_exception($e);

@@ -6,6 +6,20 @@
 
     class Oxygen_  {
 
+        private static $static = null;
+        public static $name = 'Oxygen';
+        public static function __getClass() {
+            if (self::$static === null) {
+                self::$static = new Oxygen_Class('Oxygen');
+            }
+            return self::$static;
+        }
+
+        public static function __getParentClass() {
+            return null;
+        
+        }
+
         # SCOPE:
         
         public static $__oxygenScope = array(
@@ -16,18 +30,9 @@
         );
         
         # BEGIN ASSETS:
-            public function asset_exception_css() {}
-            public function asset_exception_less() {}
-            public function asset_exception_js() {}
-            public function asset_exception_trace_css() {}
-            public function asset_exception_trace_less() {}
-            public function asset_exception_trace_js() {}
-            public function asset_inspected_css() {}
-            public function asset_inspected_less() {}
-            public function asset_inspected_js() {}
-            public function asset_oxy_css() {}
-            public function asset_oxy_less() {}
-            public function asset_oxy_js() {}
+            public function asset_inspected_css($path, $css, $class, $last) {}
+            public function asset_inspected_less($path, $css, $class, $last) {}
+            public function asset_inspected_js($path, $css, $class, $last) {}
         # END ASSETS.
 
         # BEGIN VIEWS:
@@ -35,7 +40,7 @@
             /** GET: Renders given exception            
                 @param Exception ex            
             */
-            public function get_exception($ex) {
+            private function get_exception($ex) {
                 ob_start(); try { $this->put_exception($ex); }
                 catch (Exception $_) {}
                 if(isset($_)) {ob_end_clean(); throw $_;}
@@ -45,18 +50,15 @@
             /** PUT: Renders given exception            
                 @param Exception ex            
             */
-            public function put_exception($ex) {
-                $result = include 'C:\webdev\www\toic2.lv\oxygen\exception.php';
-                $this->asset_exception_css();
-                $this->asset_exception_js();
-                $this->asset_exception_less();
-                return $result;
+            private function put_exception($ex) {
+                return include OXYGEN_ROOT . '/oxygen/exception.php';
+                
             }
                         
             /** GET: Renders given exception trace            
                 @param array trace            
             */
-            public function get_exception_trace($trace) {
+            private function get_exception_trace($trace) {
                 ob_start(); try { $this->put_exception_trace($trace); }
                 catch (Exception $_) {}
                 if(isset($_)) {ob_end_clean(); throw $_;}
@@ -66,37 +68,55 @@
             /** PUT: Renders given exception trace            
                 @param array trace            
             */
-            public function put_exception_trace($trace) {
-                $result = include 'C:\webdev\www\toic2.lv\oxygen\exception_trace.php';
-                $this->asset_exception_trace_css();
-                $this->asset_exception_trace_js();
-                $this->asset_exception_trace_less();
-                return $result;
+            private function put_exception_trace($trace) {
+                return include OXYGEN_ROOT . '/oxygen/exception_trace.php';
+                
             }
                         
-            /** GET: inspected view            
+            /** GET: Put contents of given object in debug/inspectable form            
+                @param Object value            
             */
-            public function get_inspected() {
-                ob_start(); try { $this->put_inspected(); }
+            public function get_inspected($value) {
+                ob_start(); try { $this->put_inspected($value); }
                 catch (Exception $_) {}
                 if(isset($_)) {ob_end_clean(); throw $_;}
                 return ob_get_clean();
             }
 
-            /** PUT: inspected view            
+            /** PUT: Put contents of given object in debug/inspectable form            
+                @param Object value            
             */
-            public function put_inspected() {
-                $result = include 'C:\webdev\www\toic2.lv\oxygen\inspected.php';
-                $this->asset_inspected_css();
-                $this->asset_inspected_js();
-                $this->asset_inspected_less();
+            public function put_inspected($value) {
+                $result = include OXYGEN_ROOT . '/oxygen/inspected.php';
+                $class = $this->__getClass();
+                $last = $this->__lastModified();
+                $this->asset_inspected_css(
+                    '/oxygen', 
+                    'css-Oxygen',
+                    $class,
+                    $last
+                );
+                $this->asset_inspected_less(
+                    '/oxygen', 
+                    'css-Oxygen',
+                    $class,
+                    $last
+                );
+                $this->asset_inspected_js(
+                    '/oxygen', 
+                    'css-Oxygen',
+                    $class,
+                    $last
+                );
+                
                 return $result;
+                
             }
                         
             /** GET: Renders template            
                 @param Object class            
             */
-            public function get_oxy($class) {
+            private function get_oxy($class) {
                 ob_start(); try { $this->put_oxy($class); }
                 catch (Exception $_) {}
                 if(isset($_)) {ob_end_clean(); throw $_;}
@@ -106,15 +126,16 @@
             /** PUT: Renders template            
                 @param Object class            
             */
-            public function put_oxy($class) {
-                $result = include 'C:\webdev\www\toic2.lv\oxygen\oxy.php';
-                $this->asset_oxy_css();
-                $this->asset_oxy_js();
-                $this->asset_oxy_less();
-                return $result;
+            private function put_oxy($class) {
+                return include OXYGEN_ROOT . '/oxygen/oxy.php';
+                
             }
 
         # END VIEWS.
+
+        public function __lastModified() {
+            return 1338972005;
+        }
     }
 
     
