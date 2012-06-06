@@ -1,0 +1,21 @@
+allow from all
+
+<Files ~ "class\.yml$">
+Order allow,deny
+Deny from all
+</Files>
+
+<Files ~ "\.php$">
+Order allow,deny
+Deny from all
+</Files>
+
+<Files ~ "^index.php$">
+Order allow,deny
+allow from all
+</Files>
+
+RewriteEngine On
+RewriteRule .*\.git/.* - [F]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [L]
