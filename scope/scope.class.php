@@ -63,7 +63,8 @@
 					$this->entries[$name] = $def;
 				}
 			} else {
-				throw $this->Exception("Undeclared entry $name");
+                return $this->callables[$name] = array(true, new Oxygen_Reflector($name));                
+				//throw $this->Exception("Undeclared entry $name");
 			}
 		}
 
