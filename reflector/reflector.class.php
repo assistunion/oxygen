@@ -8,6 +8,7 @@
 		private $reflected = null;
 		private $parent = null;
 		private $overrides = false;
+        private $info = array();
 
 		private static $defaults = array(
 			'factory'  => false,
@@ -55,14 +56,14 @@
 				$info = false;
 			}
 			if ($info !== false) {
-				$params = self::$defaults;
-				$params_ = &$params;
+				$this->info = self::$defaults;
+				$params_ = &$this->info;
 				$info->invoke(null, $params_);
-				$this->factory = $params['factory'] === false
+				$this->factory = $params_['factory'] === false
 					? array($this->reflected, 'newInstance')
 					: $params['factory']
 				;
-				$setScope = $params['setScope'];
+				$setScope = $params_['setScope'];
 				if ($setScope === true) {
 					$this->setScope = 'setScopeDefault';
 				} else if ($setScope === false) {
@@ -111,7 +112,7 @@
 			}
 			$this->{$this->setScope}($result, $scope);
 			if(isset($this->info['complete'])) {
-				$result->{$this->info['complte']}($scope);
+				$result->{$this->info['complete']}($scope);
 			}
 			return $result;
 		}
