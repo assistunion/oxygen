@@ -133,10 +133,10 @@
                 } else {
                     $pred = array();
                     foreach ($predicate as $key => $value) {
-                        if(is_integer($key)){
+                        if(is_integer($key)) {
                             $pred[] = $value; //TODO parse and add aliases!
                         } else {
-                            $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias,$key);
+                            $columnAlias = Oxygen_SQL_Builder::compoundAlias($alias, $key);
                             $pred[$columnAlias] = $value;
                         }
                     }

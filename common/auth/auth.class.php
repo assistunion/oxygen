@@ -12,6 +12,15 @@
 			'user' => false
 		);
 
+		public function getIcon() {
+			return 'key';
+
+		}
+
+		public function __toString() {
+			return 'Authentification';
+		}
+
 		public function getAuthDb() {
 		}
 

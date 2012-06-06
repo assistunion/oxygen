@@ -24,7 +24,7 @@
 </head>
 <body>
 <?=$body?>
-<div class="dialog-space" style="width:0px;height:0px;position:absolute"></div>
+<div class="dialog-space" style="width:0px;height:0px;position:absolute;overflow:hidden"></div>
 </body>
 </html>
 

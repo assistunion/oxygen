@@ -18,7 +18,7 @@
                 $tag = 'div';
             }
             preg_match_all('/(([A-Za-z_]+)="([^"]+)")/', $tag, $attrs);
-            preg_match_all('/\.([A-Za-z_0-9]+)/', $tag, $classes);
+            preg_match_all('/\.([A-Za-z_0-9\-]+)/', $tag, $classes);
             $classes = $classes[1];
             preg_match('/^[A-Za-z:_0-9]+/', $tag, $tagm);
             $tag  = $tagm[0];

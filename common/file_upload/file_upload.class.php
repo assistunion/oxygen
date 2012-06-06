@@ -52,12 +52,6 @@
 			$ff->scope->register('Row','TPRO_File');
 			$data = $ff->getData('ff');
 			return $data;
-			return $this->scope->connection->runQuery(
-				'select * from <db>.file_upload_formats',
-				array_merge($this->scope->dbParam,array()),
-				'id',
-				$this, 'makeFileFormat'
-			);
 		}
 
 		public function getFakeHistory() {

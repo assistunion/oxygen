@@ -170,6 +170,11 @@
             }
         }
 
+        public function getStyleColor() {
+            $x = md5($this->route);
+            return '#'.substr($x,0,6);
+        }
+
         public function handlePost() {
             $SERVER = $this->scope->SERVER;
             if(isset($SERVER['HTTP_X_OXYGEN_RPC'])) {
@@ -180,7 +185,7 @@
                 if ($continuation === 'new') {
                     $client = $this->scope->Oxygen_Communication_Client($this, $continuation);
                 } else {
-                    $client = $this->scope->Oxygen_Communication_Client($this, $continuation, $args->ask->digest, $args->ask->result);
+                    $client = $this->scope->Oxygen_Communication_Client($this, $continuation, $args->ask->digest, $args->ask->result, $args->ask->error);
                     $args = $args->args;
                 }
                 try {
@@ -352,13 +357,16 @@
                 $path = $parent->path;
                 $this->parent = $parent;
             }
+            $prevPath = $this->path;
             if($route !== '') $this->path = $path . '/' . $route;
             else $this->path = $path;
             $this->parseArgs();
             $this->__routed();
             // in case if we are rebased - update all existing children;
-            foreach ($this->children as $route => $child) {
-                $child->setPath($this, $routes);
+            if ($prevPath !== $this->path) {
+                foreach ($this->children as $route => $child) {
+                    $child->setPath($this, $route);
+                }
             }
             return $match[2];
         }

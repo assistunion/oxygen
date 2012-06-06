@@ -6,8 +6,9 @@
         public $session = null;
         public $callDigest = '';
         public $callResult = null;
+        public $callError = null;
 
-        public function __construct($owner, $continuation, $callDigest = '', $callResult = null) {
+        public function __construct($owner, $continuation, $callDigest = '', $callResult = null, $callError = null) {
             if ($continuation === 'new') {
                 $continuation = self::newGuid();
             }
@@ -15,6 +16,7 @@
             $this->owner = $owner;
             $this->callDigest = $callDigest;
             $this->callResult = $callResult;
+            $this->callError = $callError;
         }
 
         public function getName() {
@@ -26,8 +28,10 @@
         }
 
         public function __complete() {
-            $this->session = $this->scope->SESSION;
-            $this->session[$this->getCallName($this->callDigest)] = $this->callResult;
+            if (!$this->callError) {
+                $this->session = $this->scope->SESSION;
+                $this->session[$this->getCallName($this->callDigest)] = $this->callResult;
+            }
         }
 
         public function getCallDigest() {
@@ -49,7 +53,13 @@
 
         public function ask($template, $data) {
             $digest = $this->getCallDigest();
-            if($this->callDigest === $digest) return $this->callResult;
+            if($this->callDigest === $digest) {
+                if ($this->callError !== null) {
+                    throw new Oxygen_Communication_ClientException($this->callError);
+                } else {
+                    return $this->callResult;
+                }
+            }
             $name = $this->getCallName($digest);
             if(isset($this->session[$name])) {
                 return $this->session[$name];
