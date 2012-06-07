@@ -50,8 +50,16 @@
             return $this->scope->og->keywords;
         }
 
+        public function __getUrl() {
+            return OXYGEN_ROOT_URL;
+        }
+
         public function __toString() {
             return htmlspecialchars(_($this->__getTitle()));
+        }
+
+        public function __lastModified() {
+            return time();
         }
 
         public static function __oxygen_info(&$info) {
