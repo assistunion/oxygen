@@ -7,6 +7,10 @@
 
     }
 
+    function _($translatable) {
+        return $translatable;
+    }
+
     class Oxygen_FileNotFoundException extends Exception {
         public function __construct($fileName) {
             parent::__construct("File $fileName is not found");
@@ -360,6 +364,7 @@
             spl_autoload_register(array($this,'loadClass'));
             define('OXYGEN_ROOT', dirname(dirname(__FILE__)));
             define('OXYGEN_BASE', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+            define('OXYGEN_ICONS_ROOT', OXYGEN_BASE . 'lib/silk-icons/icons');
             assert('is_string($privateCacheRoot)');
             assert('is_dir($privateCacheRoot)');
             assert('is_writable($privateCacheRoot)');
@@ -413,6 +418,12 @@
 			try {
                 $o = $this;
                 $scope = $this->scope;
+                $scope->og = $scope->Oxygen_OpenGraph(
+                    'Oxygen',
+                    'Oxygen powered website',
+                    '',
+                    'oxygen, php, web, framework'
+                );
                 $scope->assets = new ArrayObject(array(
                     'css'  => array(),
                     'less' => array(),

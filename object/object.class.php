@@ -18,20 +18,40 @@
             }
         }
 
-        public function __icon() {
+        public function __getIconName() {
             return 'bullet_green';
         }
 
-        public function __iconSource() {
-            return OXYGEN_ICONS_URL . '/' . $this->__icon() . '.png';
+        public function __getIconSource() {
+            return OXYGEN_ICONS_URL . '/' . $this->__getIconName() . '.png';
         }
 
-        public function __defaultView() {
-            return 'view';
+        public function put() {
+            $this->put_view();
+        }
+
+        public function get() {
+            return $this->get_view();
+        }
+
+        public function __getTitle() {
+            return '[Object'.get_class($this).']';
+        }
+
+        public function __getDescription() {
+            return $this->scope->og->description;
+        }
+
+        public function __getImageSource() {
+            return $this->scope->og->image;
+        }
+
+        public function __getKeywords() {
+            return $this->scope->og->keywords;
         }
 
         public function __toString() {
-            return '[Object'.get_class($this).']';
+            return htmlspecialchars(_($this->__getTitle()));
         }
 
         public static function __oxygen_info(&$info) {
