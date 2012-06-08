@@ -86,28 +86,34 @@
 
             */
             <?=$method->access?> function put_<?=$name?>(<?=$args?>) {
+                try {
+                    Oxygen::push($this,'<?=$name?>');
+                    $result = include OXYGEN_ROOT . '<?=$method->relPath?>';
+                    Oxygen::closeAll();
 <?if(count($method->assets)):?>
-                $result = include OXYGEN_ROOT . '<?=$method->relPath?>';
-                $class = $this->__getClass();
-                $last = $this->__lastModified();
+                    $class = $this->__getClass();
+                    $last = $this->__lastMetaModified();
 <?foreach($method->assets as $asset):?>
-                $this->asset_<?=$asset->name?>_<?=$asset->type?>(
-                    '<?=$method->path?>', 
-                    'css-<?=$class->name?>',
-                    $class,
-                    $last
-                );
+                    $this->asset_<?=$asset->name?>_<?=$asset->type?>(
+                        '<?=$method->path?>', 
+                        'css-<?=$class->name?>',
+                        $class,
+                        $last
+                    );
 <?endforeach?>                
-                return $result;
-<?else:?>
-                return include OXYGEN_ROOT . '<?=$method->relPath?>';
 <?endif?>                
+                } catch (Exception $e) {
+                    Oxygen::pop();
+                    throw $e;
+                }
+                Oxygen::pop();
+                return $result;
             }
 <?endforeach?>
 
         # END VIEWS.
 
-        public function __lastModified() {
+        public function __lastMetaModified() {
             return <?=time()?>;
         }
     }

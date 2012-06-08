@@ -51,8 +51,17 @@
                 @param Exception ex            
             */
             private function put_exception($ex) {
-                return include OXYGEN_ROOT . '/oxygen/exception.php';
+                try {
+                    Oxygen::push($this,'exception');
+                    $result = include OXYGEN_ROOT . '/oxygen/exception.php';
+                    Oxygen::closeAll();
                 
+                } catch (Exception $e) {
+                    Oxygen::pop();
+                    throw $e;
+                }
+                Oxygen::pop();
+                return $result;
             }
                         
             /** GET: Renders given exception trace            
@@ -69,8 +78,17 @@
                 @param array trace            
             */
             private function put_exception_trace($trace) {
-                return include OXYGEN_ROOT . '/oxygen/exception_trace.php';
+                try {
+                    Oxygen::push($this,'exception_trace');
+                    $result = include OXYGEN_ROOT . '/oxygen/exception_trace.php';
+                    Oxygen::closeAll();
                 
+                } catch (Exception $e) {
+                    Oxygen::pop();
+                    throw $e;
+                }
+                Oxygen::pop();
+                return $result;
             }
                         
             /** GET: Put contents of given object in debug/inspectable form            
@@ -87,30 +105,38 @@
                 @param Object value            
             */
             public function put_inspected($value) {
-                $result = include OXYGEN_ROOT . '/oxygen/inspected.php';
-                $class = $this->__getClass();
-                $last = $this->__lastModified();
-                $this->asset_inspected_css(
-                    '/oxygen', 
-                    'css-Oxygen',
-                    $class,
-                    $last
-                );
-                $this->asset_inspected_less(
-                    '/oxygen', 
-                    'css-Oxygen',
-                    $class,
-                    $last
-                );
-                $this->asset_inspected_js(
-                    '/oxygen', 
-                    'css-Oxygen',
-                    $class,
-                    $last
-                );
+                try {
+                    Oxygen::push($this,'inspected');
+                    $result = include OXYGEN_ROOT . '/oxygen/inspected.php';
+                    Oxygen::closeAll();
+                    $class = $this->__getClass();
+                    $last = $this->__lastMetaModified();
+                    $this->asset_inspected_css(
+                        '/oxygen', 
+                        'css-Oxygen',
+                        $class,
+                        $last
+                    );
+                    $this->asset_inspected_less(
+                        '/oxygen', 
+                        'css-Oxygen',
+                        $class,
+                        $last
+                    );
+                    $this->asset_inspected_js(
+                        '/oxygen', 
+                        'css-Oxygen',
+                        $class,
+                        $last
+                    );
                 
+                
+                } catch (Exception $e) {
+                    Oxygen::pop();
+                    throw $e;
+                }
+                Oxygen::pop();
                 return $result;
-                
             }
                         
             /** GET: Renders template            
@@ -127,14 +153,23 @@
                 @param Object class            
             */
             private function put_oxy($class) {
-                return include OXYGEN_ROOT . '/oxygen/oxy.php';
+                try {
+                    Oxygen::push($this,'oxy');
+                    $result = include OXYGEN_ROOT . '/oxygen/oxy.php';
+                    Oxygen::closeAll();
                 
+                } catch (Exception $e) {
+                    Oxygen::pop();
+                    throw $e;
+                }
+                Oxygen::pop();
+                return $result;
             }
 
         # END VIEWS.
 
-        public function __lastModified() {
-            return 1339057335;
+        public function __lastMetaModified() {
+            return 1339178726;
         }
     }
 

@@ -1,1 +1,0 @@
-<tr><td><?$this->put_icon()?></td><td><?$this->put_as_child()?></td></tr>

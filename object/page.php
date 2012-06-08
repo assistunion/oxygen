@@ -3,7 +3,7 @@
 <?  
     $o = $this->scope->o;
     try {
-        $body = $this->put();
+        $body = $this->get();
         $head = $this->get_head($o->compileAssets());
     } catch(Exception $e) {
         try {
@@ -12,9 +12,10 @@
         } catch (Exception $critical) {
             $body = 'initial:'  . $e->getMessage() . '<br />' 
                   . 'critical:' . $critical->getMessage() . '<br />';
-            $head = '<title>Exception in handling</title>'
+            $head = '<title>Exception in handling</title>';
         }
     }
+
 ?>
 <head>
     <?=$head?>

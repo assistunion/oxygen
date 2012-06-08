@@ -3,8 +3,16 @@
     define('OXYGEN_MODIFIED',filemtime(__FILE__));
     define('OXYGEN_MODIFIED_OXY',filemtime(dirname(__FILE__).DIRECTORY_SEPARATOR.'oxy.php'));
 
-    function o() {
-
+    function o($tag = 'div', $data=array()) {
+        if(is_array($tag)) {
+            $data = $tag;
+            $tag = 'div';
+        }
+        if($tag{0}=='/'){
+            Oxygen::close();
+        } else {
+            Oxygen::open($tag, $data);
+        }
     }
 
     function _($translatable) {
@@ -34,6 +42,11 @@
 	class Oxygen extends Oxygen_ {
 
         const OXYGEN_SUFFIX = '_';
+        private static $mime = array(
+            'css'  => 'Content-Type: text/css; charset=UTF-8',
+            'less' => 'Content-Type: text/css; charset=UTF-8',
+            'js'   => 'Content-Type: text/javascript; charset=UTF-8'
+        );
 
         public $scope;
 
@@ -44,7 +57,10 @@
             self::$stack[self::$sp++] = (object)array(
                 'instance' => $instance,
                 'view' => $view,
-                'component' => false
+                'component' => false,
+                'css' => 'css-' . get_class($instance) . '-' . $view,
+                'stack' => array(),
+                'sp' => 0
             );
         }
 
@@ -54,10 +70,53 @@
             return $result;
         }
 
-        public static function open() {
+        public static function open($tag = 'div', $data = array()){
+            if(is_array($tag)) {
+                $data = $tag;
+                $tag = 'div';
+            }
+            preg_match_all('/(([A-Za-z_]+)="([^"]+)")/', $tag, $attrs);
+            preg_match_all('/\.([A-Za-z_0-9\-]+)/', $tag, $classes);
+            $classes = $classes[1];
+            preg_match('/^[A-Za-z:_0-9]+/', $tag, $tagm);
+            $tag  = $tagm[0];
+            $attrs = $attrs[1];
+            $call = self::$stack[self::$sp-1];
+            $call->component = true;
+            $data['remote'] = $call->instance->go();
+            $data['view'] = $call->view;
+            $call->stack[$call->sp++] = $tag;
+            echo '<' . $tag . ' class="' . $call->css;
+            foreach($classes as $class) {
+                echo ' '. $class;
+            }
+            echo '"';
+            foreach ($attrs as $a) {
+                echo ' '.$a;
+            }
+            if(is_array($data)) {
+                foreach ($data as $key => $value) {
+                    if(!is_string($value)){
+                        $value = json_encode($value);
+                    }
+                    echo ' data-' . $key . '="' . htmlspecialchars($value) . '"';
+                }
+            }
+            echo '>';
         }
 
         public static function close() {
+            $call = self::$stack[self::$sp-1];
+            $tag = $call->stack[--$call->sp];
+            echo '</' . $tag . '>';
+        }
+
+        public static function closeAll() {
+            $call = self::$stack[self::$sp-1];
+            while ($call->sp > 0) {
+                $tag = $call->stack[--$call->sp];
+                echo '</' . $tag . '>';
+            }
         }
 
         public static function pathFor($path) {
@@ -85,17 +144,13 @@
                     $names[] = $asset['destination'];
                 }
                 $bundle = md5(implode(':',$names));
-                $bundale_path = OXYGEN_ASSET_ROOT 
+                $bundle_path = OXYGEN_ASSET_ROOT 
                     . DIRECTORY_SEPARATOR . $type 
                     . DIRECTORY_SEPARATOR . $bundle
                     . '.' . $type;
-                try {
-                    $m = filemtime($bundale_path);
-                } catch (Oxygen_FileNotFoundException $ex) {
-                    $m = -1;
-                }
+                $m = self::modificationTime($bundle_path);
                 if ($last > $m) {
-                    $f = fopen($bundale_path,'w');
+                    $f = fopen($bundle_path,'w');
                     ftruncate($f, 0);
                     foreach($names as $source) {
                         $s = substr($source,strlen(OXYGEN_ASSET_ROOT)+1);
@@ -104,7 +159,11 @@
                     }
                     fclose($f);
                 }
-                $result[$type] = $bundale_path;
+                if (OXYGEN_ASSET_ROOT )
+                $result[$type] = array(
+                    'path' => $bundle_path,
+                    'url' => OXYGEN_ROOT_URL . '/' . $bundle . '.' . $type
+                );
             }
             return $result;
         }
@@ -387,12 +446,70 @@
             define('OXYGEN_CSS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('css')));
             define('OXYGEN_LESS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('less')));
             define('OXYGEN_JS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('js')));
-            $scope = new Oxygen_Scope();
-            $scope->Oxygen = array($this,'itself');
-            $scope->o = $this;
+
+            $requset = isset($_SERVER['REQUEST_URI'])
+                ? $_SERVER['REQUEST_URI']
+                : ''
+            ;
+
+            $scope            = new Oxygen_Scope();
+
+            $scope->DOCUMENT_ROOT = $DOCUMENT_ROOT = isset($_SERVER['DOCUMENT_ROOT'])
+                ? $_SERVER['DOCUMENT_ROOT']
+                : OXYGEN_ROOT
+            ;
+
+            $HTTP_HOST = $scope->HTTP_HOST = isset($_SERVER['HTTP_HOST']) 
+                ? $_SERVER['HTTP_HOST']
+                : 'localhost'
+            ;
+
+            $is_https = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on';
+
+            $dr = str_replace(DIRECTORY_SEPARATOR, '/', $DOCUMENT_ROOT);
+            $or = str_replace(DIRECTORY_SEPARATOR, '/', OXYGEN_ROOT);
+            $uri = substr($or, strlen($dr));
+
+            $requset = isset($_SERVER['REQUEST_URI'])
+                ? $_SERVER['REQUEST_URI']
+                : ''
+            ;
+
+            //SERVE ASSETS;
+            if (preg_match("#^$uri/([0-9a-f]{32})\.(css|less|js)$#", $requset, $match)) {
+                try {
+                    $bundle = $match[1];
+                    $type  = $match[2];
+                    $bundle_path = OXYGEN_ASSET_ROOT 
+                    . DIRECTORY_SEPARATOR . $type 
+                    . DIRECTORY_SEPARATOR . $bundle
+                    . '.' . $type;
+                    header(self::$mime[$type]);
+                    readfile($bundle_path);
+                    exit;
+                } catch (Oxygen_FileNotFoundException $e) {
+                    header('HTTP 404 Not found');
+                    exit;
+                }
+            }
+
+            define('OXYGEN_ROOT_URL',  
+                ($is_https ? 'https://' : 'http://') . $HTTP_HOST . $uri
+            );
+
+            
+            $scope->Oxygen    = array($this,'itself');
+            $scope->o         = $this;
+            $scope->_SESSION  = $scope->Oxygen_Session();
+            $scope->_SERVER   = $_SERVER;
+            $scope->_POST     = $_POST;
+            $scope->_GET      = $_GET;
+            $scope->_ENV      = $_ENV;
+            $scope->_FILES    = $_FILES;
             $scope->startedAt = $startedAt;
-            $this->scope = $scope;
+            $this->scope      = $scope;
             $this->scope->__set(self::$__oxygenScope);
+            $this->loadClass('Oxygen_');
 		}
 
 		public function compile() {

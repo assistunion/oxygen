@@ -62,6 +62,14 @@
             return time();
         }
 
+        public function __getSemantics() {
+            return array('c' => get_class($this), 'd' => $this->__getData(), 'u' => $this->__getUrl());
+        }
+
+        public function __getData() {
+            return $this->__toString();
+        }
+
         public static function __oxygen_info(&$info) {
         }
     }
