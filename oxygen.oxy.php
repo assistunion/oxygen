@@ -30,6 +30,10 @@
         );
         
         # BEGIN ASSETS:
+            public static $__defines_css_inspected = 'Oxygen';
+            public static $__defines_less_inspected = 'Oxygen';
+            public static $__defines_js_inspected = 'Oxygen';
+
             public function asset_inspected_css($path, $css, $class, $last) {}
             public function asset_inspected_less($path, $css, $class, $last) {}
             public function asset_inspected_js($path, $css, $class, $last) {}
@@ -169,7 +173,7 @@
         # END VIEWS.
 
         public function __lastMetaModified() {
-            return 1339178726;
+            return 1339256399;
         }
     }
 

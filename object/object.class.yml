@@ -12,6 +12,9 @@ views:
     page:
         info: "Renders full HTML documnet representation suitable for displaying in browser"
 
+    tile:
+        info: "Renders given object as a tile"
+
     view:
         info: "Generic view of $this, suitable for embedding into other views"
 

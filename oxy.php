@@ -38,6 +38,10 @@
 
         # BEGIN ASSETS:
 <?foreach($class->assets as $asset):?>
+            public static $__defines_<?=$asset->type?>_<?=$asset->name?> = '<?=$class->name?>';
+<?endforeach?>
+
+<?foreach($class->assets as $asset):?>
             <?=$asset->access?> function asset_<?=$asset->name?>_<?=$asset->type?>($path, $css, $class, $last) {<?
                 if(!$asset->override):?>}<?else:?>
 
@@ -50,6 +54,7 @@
                         'source' => OXYGEN_ROOT . '<?=addslashes($asset->relPath)?>',
                         'destination' => OXYGEN_ASSET_ROOT . '/<?=$asset->type?>' . $path . '/<?=$asset->baseName?>',
                         'class' => $class,
+                        'name' => '<?=$asset->name?>',
                         'last' => $last
                     );
                 }

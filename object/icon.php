@@ -1,1 +1,1 @@
-<img src="<?=$this->__getIconSource()?>" />
+<img class="icon" src="<?=$this->__getIconSource()?>" />

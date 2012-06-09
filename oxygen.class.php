@@ -127,6 +127,26 @@
             return require_once self::pathFor($relative);
         }
 
+        public function compileAsset($type, $source, $filename) {
+            switch ($type) {
+                case 'css':
+                case 'less':
+                    require_once self::pathFor('oxygen/lib/lessphp/lessc.inc.php');
+                    $less = new lessc();
+                    try {
+                    file_put_contents($filename, $less->parse($source));
+                    } catch (Exception $e) {
+                        file_put_contents($filename, '/* ' . $e->getMessage() . ' */');
+                    }
+                    break;
+                case 'js':
+                default:
+                    file_put_contents($filename, $source);
+                    break;
+            }
+
+        }
+
         public function compileAssets() {
             $result = array();
             foreach ($this->scope->assets as $type => $assets) {
@@ -137,6 +157,7 @@
                         $asset['source'],
                         $asset['destination'],
                         $css,
+                        $asset['name'],
                         $type,
                         $asset['last']
                     );
@@ -146,20 +167,18 @@
                 $bundle = md5(implode(':',$names));
                 $bundle_path = OXYGEN_ASSET_ROOT 
                     . DIRECTORY_SEPARATOR . $type 
-                    . DIRECTORY_SEPARATOR . $bundle
+                    . DIRECTORY_SEPARATOR . $bundle 
                     . '.' . $type;
                 $m = self::modificationTime($bundle_path);
                 if ($last > $m) {
-                    $f = fopen($bundle_path,'w');
-                    ftruncate($f, 0);
+                    ob_start();
                     foreach($names as $source) {
                         $s = substr($source,strlen(OXYGEN_ASSET_ROOT)+1);
-                        fwrite($f, '/* ' . $s .  " */\n");
-                        fwrite($f, file_get_contents($source));
+                        echo '/* ' . $s .  " */\n";
+                        readfile($source);
                     }
-                    fclose($f);
+                    $this->compileAsset($type, ob_get_clean(), $bundle_path);
                 }
-                if (OXYGEN_ASSET_ROOT )
                 $result[$type] = array(
                     'path' => $bundle_path,
                     'url' => OXYGEN_ROOT_URL . '/' . $bundle . '.' . $type
@@ -484,11 +503,20 @@
                     . DIRECTORY_SEPARATOR . $type 
                     . DIRECTORY_SEPARATOR . $bundle
                     . '.' . $type;
+                    $m = filemtime($bundle_path);
+                    $etag = '"'.$m.'"';
+                    if(isset($_SERVER['HTTP_IF_NONE_MATCH'])){
+                        if ($etag === $_SERVER['HTTP_IF_NONE_MATCH']) {
+                            header('HTTP/1.1 304 Not modified');
+                            exit;
+                        } 
+                    }
+                    header("Etag: $etag");
                     header(self::$mime[$type]);
                     readfile($bundle_path);
                     exit;
                 } catch (Oxygen_FileNotFoundException $e) {
-                    header('HTTP 404 Not found');
+                    header('HTTP/1.1 404 Not found');
                     exit;
                 }
             }

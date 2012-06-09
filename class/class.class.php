@@ -23,23 +23,14 @@
             return $this->name;
         }
 
-        public function js($source) {
-            return $source;
+        public function __getPublicInstanceMethod($name) {
+            $m = $this->ref->getMethod($name); 
+            if ($m->isStatic()) throw new ReflectionException("$name is static");
+            if (!$m->isPublic()) throw new ReflectionException("$name is not public");
+            return $m;
         }
 
-        public function less($source) {
-            if ($this->less === null) {
-                require_once Oxygen::pathFor('oxygen/lib/lessphp/lessc.inc.php');
-                $this->less = new lessc;
-            }
-            return $this->less->parse($source);
-        }
-
-        public function css($source) {
-            return $this->less($source);
-        }
-
-        public function compile($source, $destination, $css, $type, $time) {
+        public function compile($source, $destination, $css, $name, $type, $time) {
             $include = dirname(__FILE__) . DIRECTORY_SEPARATOR . $type . '.php';
             try {
                 $d = filemtime($destination);
@@ -50,13 +41,23 @@
             } catch (Oxygen_FileNotFoundException $e) {
                 Oxygen::getWritableDir(dirname($destination));
             }
+            $parent = $this->__getParentClass();
+            if ($parent !== null) {
+                try {
+                    $parent = 'css-'. $parent->{'__defines_'.$type.'_'.$name} . '-' . $name;
+                } catch (ReflectionException $e) {
+                    $parent = $css;
+                }
+            } else {
+                $parent = $css;
+            }
             try {
                 unset($d); 
                 unset($s);
                 unset($i);
                 ob_start();
                 include $include;
-                $result = $this->{$type}(ob_get_clean());
+                $result = ob_get_clean();
             } catch(Exception $e) {
                 ob_end_clean();
                 $result = '/* ' . $e->getMessage() . ' */';
