@@ -151,7 +151,7 @@
             $result = array();
             foreach ($this->scope->assets as $type => $assets) {
                 $names = array();
-                $last = 0;
+                $last = 1;
                 foreach($assets as $css => $asset) {
                     $time = $asset['class']->compile(
                         $asset['source'],
@@ -165,9 +165,9 @@
                     $names[] = $asset['destination'];
                 }
                 $bundle = md5(implode(':',$names));
-                $bundle_path = OXYGEN_ASSET_ROOT 
-                    . DIRECTORY_SEPARATOR . $type 
-                    . DIRECTORY_SEPARATOR . $bundle 
+                $bundle_path = OXYGEN_ASSET_ROOT
+                    . DIRECTORY_SEPARATOR . $type
+                    . DIRECTORY_SEPARATOR . $bundle
                     . '.' . $type;
                 $m = self::modificationTime($bundle_path);
                 if ($last > $m) {
@@ -283,7 +283,7 @@
             $ref = $ancestor
                 ? new ReflectionClass($ancestor)
                 : null
-            ;            
+            ;
             $ancestor_access = array();
 
             # ===  VIEWS ====
@@ -339,7 +339,7 @@
                             'absPath'  => $file,
                             'baseName' => basename($file),
                             'type'     => $type,
-                            'genPath'  => OXYGEN_ASSET_ROOT . DIRECTORY_SEPARATOR 
+                            'genPath'  => OXYGEN_ASSET_ROOT . DIRECTORY_SEPARATOR
                                         . $type . $path . DIRECTORY_SEPARATOR
                                         . basename($file),
                             'access'   => $view->access
@@ -391,7 +391,6 @@
                     ftruncate($f, 0);
                     fwrite($f, $generated);
                     flock($f, LOCK_UN);
-                    echo "compiled";
                 }
                 fclose($f);
             } catch (Exception $e) {
@@ -444,6 +443,7 @@
             define('OXYGEN_BASE', dirname(__FILE__) . DIRECTORY_SEPARATOR);
             define('OXYGEN_ICONS_ROOT', OXYGEN_BASE . 'lib/silk-icons/icons');
             assert('is_string($privateCacheRoot)');
+            self::getWritableDir($privateCacheRoot);
             assert('is_dir($privateCacheRoot)');
             assert('is_writable($privateCacheRoot)');
             define('OXYGEN_CACHE_ROOT', $privateCacheRoot);
@@ -478,7 +478,7 @@
                 : OXYGEN_ROOT
             ;
 
-            $HTTP_HOST = $scope->HTTP_HOST = isset($_SERVER['HTTP_HOST']) 
+            $HTTP_HOST = $scope->HTTP_HOST = isset($_SERVER['HTTP_HOST'])
                 ? $_SERVER['HTTP_HOST']
                 : 'localhost'
             ;
@@ -499,8 +499,8 @@
                 try {
                     $bundle = $match[1];
                     $type  = $match[2];
-                    $bundle_path = OXYGEN_ASSET_ROOT 
-                    . DIRECTORY_SEPARATOR . $type 
+                    $bundle_path = OXYGEN_ASSET_ROOT
+                    . DIRECTORY_SEPARATOR . $type
                     . DIRECTORY_SEPARATOR . $bundle
                     . '.' . $type;
                     $m = filemtime($bundle_path);
@@ -509,7 +509,7 @@
                         if ($etag === $_SERVER['HTTP_IF_NONE_MATCH']) {
                             header('HTTP/1.1 304 Not modified');
                             exit;
-                        } 
+                        }
                     }
                     header("Etag: $etag");
                     header(self::$mime[$type]);
@@ -521,11 +521,11 @@
                 }
             }
 
-            define('OXYGEN_ROOT_URL',  
+            define('OXYGEN_ROOT_URL',
                 ($is_https ? 'https://' : 'http://') . $HTTP_HOST . $uri
             );
 
-            
+
             $scope->Oxygen    = array($this,'itself');
             $scope->o         = $this;
             $scope->_SESSION  = $scope->Oxygen_Session();
