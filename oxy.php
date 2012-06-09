@@ -98,10 +98,11 @@
 <?if(count($method->assets)):?>
                     $class = $this->__getClass();
                     $last = $this->__lastMetaModified();
+                    $css = 'css-' . $class;
 <?foreach($method->assets as $asset):?>
                     $this->asset_<?=$asset->name?>_<?=$asset->type?>(
                         '<?=$method->path?>', 
-                        'css-<?=$class->name?>',
+                        $css,
                         $class,
                         $last
                     );

@@ -115,21 +115,22 @@
                     Oxygen::closeAll();
                     $class = $this->__getClass();
                     $last = $this->__lastMetaModified();
+                    $css = 'css-' . $class;
                     $this->asset_inspected_css(
                         '/oxygen', 
-                        'css-Oxygen',
+                        $css,
                         $class,
                         $last
                     );
                     $this->asset_inspected_less(
                         '/oxygen', 
-                        'css-Oxygen',
+                        $css,
                         $class,
                         $last
                     );
                     $this->asset_inspected_js(
                         '/oxygen', 
-                        'css-Oxygen',
+                        $css,
                         $class,
                         $last
                     );
@@ -173,7 +174,7 @@
         # END VIEWS.
 
         public function __lastMetaModified() {
-            return 1339256399;
+            return 1339276099;
         }
     }
 
