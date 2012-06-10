@@ -3,6 +3,7 @@
     define('OXYGEN_METACLASS_MODIFIED', filemtime(__FILE__));
 
     class Oxygen_Class {
+
         private $ref = null;
         private $name = '';
         private $less = null;
@@ -24,35 +25,53 @@
         }
 
         public function __getPublicInstanceMethod($name) {
-            $m = $this->ref->getMethod($name); 
+            $m = $this->ref->getMethod($name);
             if ($m->isStatic()) throw new ReflectionException("$name is static");
             if (!$m->isPublic()) throw new ReflectionException("$name is not public");
             return $m;
         }
 
-        public function compile($source, $destination, $css, $name, $type, $time) {
-            $include = dirname(__FILE__) . DIRECTORY_SEPARATOR . $type . '.php';
+        public function compile($asset) {
+
+            $type        = $asset['type'];
+            $name        = $asset['name'];
+            $ext         = $asset['ext'];
+
+            $include     = dirname(__FILE__)
+                         . DIRECTORY_SEPARATOR
+                         . $type
+                         . '.php'
+            ;
+            $destination = OXYGEN_ASSET_ROOT
+                         . DIRECTORY_SEPARATOR
+                         . $type
+                         . $this->__oxygen_path
+                         . DIRECTORY_SEPARATOR
+                         . $name
+                         . $ext
+            ;
+            $source      = OXYGEN_ROOT
+                         . DIRECTORY_SEPARATOR
+                         . $asset['path']
+                         . DIRECTORY_SEPARATOR
+                         . $name
+                         . $ext
+            ;
             try {
                 $d = filemtime($destination);
                 $s = filemtime($source);
                 $i = filemtime($include);
+                $t = $this->__lastMetaModified;
                 $m = OXYGEN_METACLASS_MODIFIED;
-                if ($d >= max($s, $i, $time, $m)) return $d;
+                if ($d >= max($s, $i, $t, $m)) return array($d, $destination);
             } catch (Oxygen_FileNotFoundException $e) {
                 Oxygen::getWritableDir(dirname($destination));
             }
-            $parent = $this->__getParentClass();
-            if ($parent !== null) {
-                try {
-                    $parent = 'css-'. $parent->{'__defines_'.$type.'_'.$name} . '-' . $name;
-                } catch (ReflectionException $e) {
-                    $parent = $css;
-                }
-            } else {
-                $parent = $css;
-            }
+            $css = 'css-' . $this . '-' . $name;
             try {
-                unset($d); 
+                unset($m);
+                unset($t);
+                unset($d);
                 unset($s);
                 unset($i);
                 ob_start();
@@ -63,7 +82,7 @@
                 $result = '/* ' . $e->getMessage() . ' */';
             }
             file_put_contents($destination, $result);
-            return time();
+            return array(time(), $destination);
         }
     }
 

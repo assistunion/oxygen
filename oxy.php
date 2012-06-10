@@ -7,6 +7,9 @@
 
     class <?=$class->oxyName?> <?if($class->extends):?>extends <?=$class->extends?><?endif?> {
 
+        public static $__oxygen_path = '<?=$class->path?>';
+        public static $__lastMetaModified = <?=time()?>;
+
         private static $static = null;
         public static $name = '<?=$class->name?>';
         public static function __getClass() {
@@ -21,7 +24,7 @@
             return <?=$class->extends?>::__getClass();
 <?else:?>
             return null;
-<?endif?>        
+<?endif?>
         }
 
         # SCOPE:
@@ -42,20 +45,20 @@
 <?endforeach?>
 
 <?foreach($class->assets as $asset):?>
-            <?=$asset->access?> function asset_<?=$asset->name?>_<?=$asset->type?>($path, $css, $class, $last) {<?
-                if(!$asset->override):?>}<?else:?>
+            <?=$asset->access?> function <?=$asset->method?>($class) {<?
+                if($asset->file === false):?>}<?else:?>
 
                 if(!isset($this->__assets)) {
                     $this->__assets = &$this->scope->assets;
                 }
-                $name = $css . '-<?=$asset->name?>';
+                $name = $class . '-<?=$asset->name?>';
                 if (!isset($this->__assets['<?=$asset->type?>'][$name])) {
                     $this->__assets['<?=$asset->type?>'][$name] = array(
-                        'source' => OXYGEN_ROOT . '<?=addslashes($asset->relPath)?>',
-                        'destination' => OXYGEN_ASSET_ROOT . '/<?=$asset->type?>' . $path . '/<?=$asset->baseName?>',
-                        'class' => $class,
-                        'name' => '<?=$asset->name?>',
-                        'last' => $last
+                        'type'  => '<?=$asset->type?>',
+                        'ext'   => '<?=$asset->ext?>',
+                        'name'  => '<?=$asset->name?>',
+                        'path'  => self::$__oxygen_path,
+                        'class' => $class
                     );
                 }
             }
@@ -93,21 +96,12 @@
             <?=$method->access?> function put_<?=$name?>(<?=$args?>) {
                 try {
                     Oxygen::push($this,'<?=$name?>');
-                    $result = include OXYGEN_ROOT . '<?=$method->relPath?>';
+                    $result = include OXYGEN_ROOT . '<?=$class->path?>/<?=$name?>.php';
                     Oxygen::closeAll();
-<?if(count($method->assets)):?>
                     $class = $this->__getClass();
-                    $last = $this->__lastMetaModified();
-                    $css = 'css-' . $class;
 <?foreach($method->assets as $asset):?>
-                    $this->asset_<?=$asset->name?>_<?=$asset->type?>(
-                        '<?=$method->path?>', 
-                        $css,
-                        $class,
-                        $last
-                    );
-<?endforeach?>                
-<?endif?>                
+                    $this-><?=$asset->method?>($class);
+<?endforeach?>
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;
@@ -119,9 +113,6 @@
 
         # END VIEWS.
 
-        public function __lastMetaModified() {
-            return <?=time()?>;
-        }
     }
 
     <?if($class->both):?>class <?=$class->name?> extends <?$class->oxyName?> {

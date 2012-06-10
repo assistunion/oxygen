@@ -6,6 +6,9 @@
 
     class Oxygen_  {
 
+        public static $__oxygen_path = '/oxygen';
+        public static $__lastMetaModified = 1339287938;
+
         private static $static = null;
         public static $name = 'Oxygen';
         public static function __getClass() {
@@ -17,7 +20,6 @@
 
         public static function __getParentClass() {
             return null;
-        
         }
 
         # SCOPE:
@@ -34,9 +36,9 @@
             public static $__defines_less_inspected = 'Oxygen';
             public static $__defines_js_inspected = 'Oxygen';
 
-            public function asset_inspected_css($path, $css, $class, $last) {}
-            public function asset_inspected_less($path, $css, $class, $last) {}
-            public function asset_inspected_js($path, $css, $class, $last) {}
+            public function asset_inspected_css($class) {}
+            public function asset_inspected_less($class) {}
+            public function asset_inspected_js($class) {}
         # END ASSETS.
 
         # BEGIN VIEWS:
@@ -59,7 +61,7 @@
                     Oxygen::push($this,'exception');
                     $result = include OXYGEN_ROOT . '/oxygen/exception.php';
                     Oxygen::closeAll();
-                
+                    $class = $this->__getClass();
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;
@@ -86,7 +88,7 @@
                     Oxygen::push($this,'exception_trace');
                     $result = include OXYGEN_ROOT . '/oxygen/exception_trace.php';
                     Oxygen::closeAll();
-                
+                    $class = $this->__getClass();
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;
@@ -114,28 +116,9 @@
                     $result = include OXYGEN_ROOT . '/oxygen/inspected.php';
                     Oxygen::closeAll();
                     $class = $this->__getClass();
-                    $last = $this->__lastMetaModified();
-                    $css = 'css-' . $class;
-                    $this->asset_inspected_css(
-                        '/oxygen', 
-                        $css,
-                        $class,
-                        $last
-                    );
-                    $this->asset_inspected_less(
-                        '/oxygen', 
-                        $css,
-                        $class,
-                        $last
-                    );
-                    $this->asset_inspected_js(
-                        '/oxygen', 
-                        $css,
-                        $class,
-                        $last
-                    );
-                
-                
+                    $this->asset_inspected_css($class);
+                    $this->asset_inspected_less($class);
+                    $this->asset_inspected_js($class);
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;
@@ -162,7 +145,7 @@
                     Oxygen::push($this,'oxy');
                     $result = include OXYGEN_ROOT . '/oxygen/oxy.php';
                     Oxygen::closeAll();
-                
+                    $class = $this->__getClass();
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;
@@ -173,9 +156,6 @@
 
         # END VIEWS.
 
-        public function __lastMetaModified() {
-            return 1339276099;
-        }
     }
 
     

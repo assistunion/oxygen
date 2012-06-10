@@ -127,21 +127,21 @@
             return require_once self::pathFor($relative);
         }
 
-        public function compileAsset($type, $source, $filename) {
+        public function compileAsset($type, $source, $fileName) {
             switch ($type) {
                 case 'css':
                 case 'less':
                     require_once self::pathFor('oxygen/lib/lessphp/lessc.inc.php');
                     $less = new lessc();
                     try {
-                    file_put_contents($filename, $less->parse($source));
+                    file_put_contents($fileName, $less->parse($source));
                     } catch (Exception $e) {
-                        file_put_contents($filename, '/* ' . $e->getMessage() . ' */');
+                        file_put_contents($fileName, '/* ' . $e->getMessage() . ' */');
                     }
                     break;
                 case 'js':
                 default:
-                    file_put_contents($filename, $source);
+                    file_put_contents($fileName, $source);
                     break;
             }
 
@@ -150,21 +150,14 @@
         public function compileAssets() {
             $result = array();
             foreach ($this->scope->assets as $type => $assets) {
-                $names = array();
+                $fileNames = array();
                 $last = 1;
-                foreach($assets as $css => $asset) {
-                    $time = $asset['class']->compile(
-                        $asset['source'],
-                        $asset['destination'],
-                        $css,
-                        $asset['name'],
-                        $type,
-                        $asset['last']
-                    );
+                foreach($assets as $asset) {
+                    list($time, $fileName) = $asset['class']->compile($asset);
                     $last = max($last, $time);
-                    $names[] = $asset['destination'];
+                    $fileNames[] = $fileName;
                 }
-                $bundle = md5(implode(':',$names));
+                $bundle = md5(implode(':',$fileNames));
                 $bundle_path = OXYGEN_ASSET_ROOT
                     . DIRECTORY_SEPARATOR . $type
                     . DIRECTORY_SEPARATOR . $bundle
@@ -172,10 +165,11 @@
                 $m = self::modificationTime($bundle_path);
                 if ($last > $m) {
                     ob_start();
-                    foreach($names as $source) {
-                        $s = substr($source,strlen(OXYGEN_ASSET_ROOT)+1);
+                    foreach($fileNames as $fileName) {
+                        $s = substr($fileName, strlen(OXYGEN_ASSET_ROOT)+1);
                         echo '/* ' . $s .  " */\n";
-                        readfile($source);
+                        readfile($fileName);
+                        echo "\n";
                     }
                     $this->compileAsset($type, ob_get_clean(), $bundle_path);
                 }
@@ -266,6 +260,7 @@
             $pattern = '/(?:' . implode('|', array_map('preg_quote', array_keys($all))) . ')$/';
             foreach ($files as $file) {
                 $name = basename($file);
+                $file = '/' . $path . '/' . $file;
                 if (preg_match($pattern, $name, $m)) {
                     $ext = $m[0];
                     $name = substr($name, 0, -strlen($ext));
@@ -291,6 +286,7 @@
                 ? $yaml['views']
                 : array()
             ;
+
             $views = array();
             foreach ($all['.php'] as $name => $file) {
                 $defaultAccess = 'private';
@@ -309,9 +305,6 @@
                     $yamlView = array();
                 }
                 $views[$name] = (object)array(
-                    'relPath' => str_replace(DIRECTORY_SEPARATOR,'/',$path . DIRECTORY_SEPARATOR . basename($file)),
-                    'absPath' => str_replace(DIRECTORY_SEPARATOR,'/',$file),
-                    'path'    => str_replace(DIRECTORY_SEPARATOR,'/',$path),
                     'access'  => isset($yamlView['access']) ? $yamlView['access'] : $defaultAccess,
                     'args'    => isset($yamlView['args']) ? $yamlView['args'] : array(),
                     'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view'),
@@ -330,39 +323,34 @@
             foreach ($views as $name => &$view) {
                 foreach ($assetExt as $type => $ext) {
                     $method = 'asset_' . $name . '_' . $type;
-                    if (isset($all[$ext][$name])) {
-                        $file = $all[$ext][$name];
-                        $assets[] = $view->assets[$method] = (object)array(
-                            'override' => true,
-                            'name'     => $name,
-                            'relPath'  => str_replace(DIRECTORY_SEPARATOR,'/',$path . DIRECTORY_SEPARATOR . basename($file)),
-                            'absPath'  => $file,
-                            'baseName' => basename($file),
-                            'type'     => $type,
-                            'genPath'  => OXYGEN_ASSET_ROOT . DIRECTORY_SEPARATOR
-                                        . $type . $path . DIRECTORY_SEPARATOR
-                                        . basename($file),
-                            'access'   => $view->access
-                        );
+                    $file = isset($all[$ext][$name])
+                        ? $all[$ext][$name]
+                        : false
+                    ;
+                    $asset = (object)array(
+                            'name'   => $name,
+                            'file'   => $file,
+                            'ext'    => $ext,
+                            'type'   => $type,
+                            'method' => $method,
+                            'access' => $view->access
+                    );
+                    if ($file !== false) {
+                        // asset is defined in current class
+                        // display it both in defs and usages
+                        $assets[] = $view->assets[$method] = $asset;
                     } else if ($ancestor_access[$name] === 'private') {
+                        // asset is not inherited and file is not present;
                         if ($view->access !== 'private') {
-                            $assets[] = $view->assets[$method] = (object)array(
-                                'override' => false,
-                                'name'    => $name,
-                                'type'    => $type,
-                                'method'  => $method,
-                                'access'   => $view->access
-                            );
+                            //asset should be introduced since view is inheritable
+                            //we should create an empty entries in defs
+                            //and also generate usage;
+                            $assets[] = $view->assets[$method] = $asset;
                         }
                     } else {
-                        $view->assets[$method] = (object)array(
-                            'override' => false,
-                            'name'    => $name,
-                            'type'    => $type,
-                            'method'  => $method,
-                            'baseName' => $name . $ext,
-                            'access'   => $view->access
-                        );
+                        //asset is simply inherited, so we'll
+                        //generate only it's usage
+                        $view->assets[$method] = $asset;
                     }
                 }
             }
@@ -381,18 +369,12 @@
                 'scope' => $scope,
                 'oxyName' => $className . self::OXYGEN_SUFFIX,
                 'views' => $views,
-                'assets' => $assets
+                'assets' => $assets,
+                'path' => $path
             );
 
             try {
-                $generated = $this->get_oxy($class);
-                $f = fopen($genPath,'w+');
-                if (flock($f,LOCK_EX)) {
-                    ftruncate($f, 0);
-                    fwrite($f, $generated);
-                    flock($f, LOCK_UN);
-                }
-                fclose($f);
+                file_put_contents($genPath, $this->get_oxy($class));
             } catch (Exception $e) {
                 print $e;
             }
@@ -428,7 +410,7 @@
                     $compilePath,
                     $base ? substr($class,0,-strlen(self::OXYGEN_SUFFIX)) : $class,
                     $yaml,
-                    $path,
+                    str_replace(DIRECTORY_SEPARATOR, '/', $path),
                     !$base
                 );
             }
