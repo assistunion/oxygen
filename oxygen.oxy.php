@@ -7,15 +7,21 @@
     class Oxygen_  {
 
         public static $__oxygen_path = '/oxygen';
-        public static $__lastMetaModified = 1339287938;
+        public static $__lastMetaModified = 1339378196;
 
         private static $static = null;
-        public static $name = 'Oxygen';
+        public static $__className = 'Oxygen';
         public static function __getClass() {
             if (self::$static === null) {
-                self::$static = new Oxygen_Class('Oxygen');
+                self::$static = Oxygen_Class::make('Oxygen');
             }
             return self::$static;
+        }
+
+        public static $__metaClass = 'Oxygen_Class';
+
+        public static function __getMetaClass() {
+            return self::$__metaClass;
         }
 
         public static function __getParentClass() {
@@ -42,6 +48,8 @@
         # END ASSETS.
 
         # BEGIN VIEWS:
+
+            public static $__exception_target = 'html';
                         
             /** GET: Renders given exception            
                 @param Exception ex            
@@ -69,6 +77,8 @@
                 Oxygen::pop();
                 return $result;
             }
+
+            public static $__exception_trace_target = 'html';
                         
             /** GET: Renders given exception trace            
                 @param array trace            
@@ -96,6 +106,8 @@
                 Oxygen::pop();
                 return $result;
             }
+
+            public static $__inspected_target = 'html';
                         
             /** GET: Put contents of given object in debug/inspectable form            
                 @param Object value            
@@ -119,33 +131,6 @@
                     $this->asset_inspected_css($class);
                     $this->asset_inspected_less($class);
                     $this->asset_inspected_js($class);
-                } catch (Exception $e) {
-                    Oxygen::pop();
-                    throw $e;
-                }
-                Oxygen::pop();
-                return $result;
-            }
-                        
-            /** GET: Renders template            
-                @param Object class            
-            */
-            private function get_oxy($class) {
-                ob_start(); try { $this->put_oxy($class); }
-                catch (Exception $_) {}
-                if(isset($_)) {ob_end_clean(); throw $_;}
-                return ob_get_clean();
-            }
-
-            /** PUT: Renders template            
-                @param Object class            
-            */
-            private function put_oxy($class) {
-                try {
-                    Oxygen::push($this,'oxy');
-                    $result = include OXYGEN_ROOT . '/oxygen/oxy.php';
-                    Oxygen::closeAll();
-                    $class = $this->__getClass();
                 } catch (Exception $e) {
                     Oxygen::pop();
                     throw $e;

@@ -1,8 +1,5 @@
 <?
 
-    define('OXYGEN_MODIFIED',filemtime(__FILE__));
-    define('OXYGEN_MODIFIED_OXY',filemtime(dirname(__FILE__).DIRECTORY_SEPARATOR.'oxy.php'));
-
     function o($tag = 'div', $data=array()) {
         if(is_array($tag)) {
             $data = $tag;
@@ -41,7 +38,9 @@
 
 	class Oxygen extends Oxygen_ {
 
-        const OXYGEN_SUFFIX = '_';
+        public $assets = null;
+        public $og = null;
+
         private static $mime = array(
             'css'  => 'Content-Type: text/css; charset=UTF-8',
             'less' => 'Content-Type: text/css; charset=UTF-8',
@@ -127,60 +126,6 @@
             return require_once self::pathFor($relative);
         }
 
-        public function compileAsset($type, $source, $fileName) {
-            switch ($type) {
-                case 'css':
-                case 'less':
-                    require_once self::pathFor('oxygen/lib/lessphp/lessc.inc.php');
-                    $less = new lessc();
-                    try {
-                    file_put_contents($fileName, $less->parse($source));
-                    } catch (Exception $e) {
-                        file_put_contents($fileName, '/* ' . $e->getMessage() . ' */');
-                    }
-                    break;
-                case 'js':
-                default:
-                    file_put_contents($fileName, $source);
-                    break;
-            }
-
-        }
-
-        public function compileAssets() {
-            $result = array();
-            foreach ($this->scope->assets as $type => $assets) {
-                $fileNames = array();
-                $last = 1;
-                foreach($assets as $asset) {
-                    list($time, $fileName) = $asset['class']->compile($asset);
-                    $last = max($last, $time);
-                    $fileNames[] = $fileName;
-                }
-                $bundle = md5(implode(':',$fileNames));
-                $bundle_path = OXYGEN_ASSET_ROOT
-                    . DIRECTORY_SEPARATOR . $type
-                    . DIRECTORY_SEPARATOR . $bundle
-                    . '.' . $type;
-                $m = self::modificationTime($bundle_path);
-                if ($last > $m) {
-                    ob_start();
-                    foreach($fileNames as $fileName) {
-                        $s = substr($fileName, strlen(OXYGEN_ASSET_ROOT)+1);
-                        echo '/* ' . $s .  " */\n";
-                        readfile($fileName);
-                        echo "\n";
-                    }
-                    $this->compileAsset($type, ob_get_clean(), $bundle_path);
-                }
-                $result[$type] = array(
-                    'path' => $bundle_path,
-                    'url' => OXYGEN_ROOT_URL . '/' . $bundle . '.' . $type
-                );
-            }
-            return $result;
-        }
-
 
 		public static function getWritableDir($base, $dir = '.') {
 			if(is_array($dir)) $dir = implode(DIRECTORY_SEPARATOR, $dir);
@@ -199,253 +144,75 @@
 			return $next;
 		}
 
-        private static function once($lib) {
+        public static function once($lib) {
             $path = dirname(__FILE__).implode(DIRECTORY_SEPARATOR,explode('/','/lib/'.$lib));
             require_once $path;
         }
 
-        private static function parseName($class) {
-            $len = max(0, strlen($class) - strlen(self::OXYGEN_SUFFIX));
-            $base = substr($class, $len) === self::OXYGEN_SUFFIX;
-            if ($base) $class = substr($class, 0, $len);
-            $parts = explode('_', $class);
-            $path = '';
-            foreach ($parts as $part){
-                if (preg_match("/^[A-Z0-9]+$/", $part)) {
-                    $last = strtolower($part);
-                } else {
-                    preg_match_all("/[A-Z][a-z0-9]+/", $part, $match);
-                    $subparts = $match[0];
-                    if (count($subparts)==0) throw new Oxygen_ClassNotFoundException($class);
-                    $separator = '';
-                    $last = '';
-                    foreach($subparts as $subpart) {
-                        $last .= $separator . strtolower($subpart);
-                        $separator = '_';
-                    }
-                }
-                $path .= DIRECTORY_SEPARATOR . $last;
-            }
-            return array($path, $last, $base);
-        }
-
-        private static function modificationTime($path) {
-            try {
-                return filemtime($path);
-            } catch (Oxygen_FileNotFoundException $e) {
-                return 0;
-            }
-        }
-
-        private static function getYaml($path) {
-            self::once('yaml-php/lib/sfYaml.php');
-            return sfYaml::load($path);
-        }
-
-        private function compileItem($normalDir, $genPath, $className, $yaml, $path, $both) {
-            $files = glob($normalDir . DIRECTORY_SEPARATOR . '*');
-            $all = array(
-                '.class.php' => array(),
-                '.class.yml' => array(),
-                '.oxy.php'   => array(),
-                '.php'       => array(),
-                '.css'       => array(),
-                '.js'        => array(),
-                '.less'      => array(),
-                '.yml'       => array(),
-                '.json'      => array(),
-                '*'          => array()
-            );
-
-            $pattern = '/(?:' . implode('|', array_map('preg_quote', array_keys($all))) . ')$/';
-            foreach ($files as $file) {
-                $name = basename($file);
-                $file = '/' . $path . '/' . $file;
-                if (preg_match($pattern, $name, $m)) {
-                    $ext = $m[0];
-                    $name = substr($name, 0, -strlen($ext));
-                    $all[$ext][$name] = $file;
-                } else {
-                    $all['*'][$name] = $file;
-                }
-            }
-
-            $ancestor = isset($yaml['extends'])
-                ? $yaml['extends']
-                : null
-            ;
-
-            $ref = $ancestor
-                ? new ReflectionClass($ancestor)
-                : null
-            ;
-            $ancestor_access = array();
-
-            # ===  VIEWS ====
-            $yamlViews = isset($yaml['views'])
-                ? $yaml['views']
-                : array()
-            ;
-
-            $views = array();
-            foreach ($all['.php'] as $name => $file) {
-                $defaultAccess = 'private';
-                if ($ref) try {
-                    $m = $ref->getMethod('put_' . $name);
-                    if ($m->isPublic()) $defaultAccess = 'public';
-                    else if ($m->isProtected()) $defaultAccess = 'protected';
-                    else $defaultAccess = 'private';
-                } catch (ReflectionException $re) {
-                }
-                $ancestor_access[$name] = $defaultAccess;
-                if(isset($yamlViews[$name])) {
-                    $yamlView = $yamlViews[$name];
-                    $defaultAccess = 'public';
-                } else {
-                    $yamlView = array();
-                }
-                $views[$name] = (object)array(
-                    'access'  => isset($yamlView['access']) ? $yamlView['access'] : $defaultAccess,
-                    'args'    => isset($yamlView['args']) ? $yamlView['args'] : array(),
-                    'info'    => isset($yamlView['info']) ? $yamlView['info'] : ($name . ' view'),
-                    'assets'  => array()
-                );
-            }
-
-            $assetExt = array(
-                'css'  => '.css',
-                'less' => '.less',
-                'js'   => '.js'
-            );
-
-            # ===  ASSETS =====
-            $assets = array();
-            foreach ($views as $name => &$view) {
-                foreach ($assetExt as $type => $ext) {
-                    $method = 'asset_' . $name . '_' . $type;
-                    $file = isset($all[$ext][$name])
-                        ? $all[$ext][$name]
-                        : false
-                    ;
-                    $asset = (object)array(
-                            'name'   => $name,
-                            'file'   => $file,
-                            'ext'    => $ext,
-                            'type'   => $type,
-                            'method' => $method,
-                            'access' => $view->access
-                    );
-                    if ($file !== false) {
-                        // asset is defined in current class
-                        // display it both in defs and usages
-                        $assets[] = $view->assets[$method] = $asset;
-                    } else if ($ancestor_access[$name] === 'private') {
-                        // asset is not inherited and file is not present;
-                        if ($view->access !== 'private') {
-                            //asset should be introduced since view is inheritable
-                            //we should create an empty entries in defs
-                            //and also generate usage;
-                            $assets[] = $view->assets[$method] = $asset;
-                        }
-                    } else {
-                        //asset is simply inherited, so we'll
-                        //generate only it's usage
-                        $view->assets[$method] = $asset;
-                    }
-                }
-            }
-
-            # === SCOPE ===
-
-            $scope = isset($yaml['scope'])
-                ? $yaml['scope']
-                : false;
-            ;
-
-            $class = (object)array(
-                'both' => $both,
-                'name' => $className,
-                'extends' => $ancestor,
-                'scope' => $scope,
-                'oxyName' => $className . self::OXYGEN_SUFFIX,
-                'views' => $views,
-                'assets' => $assets,
-                'path' => $path
-            );
-
-            try {
-                file_put_contents($genPath, $this->get_oxy($class));
-            } catch (Exception $e) {
-                print $e;
-            }
-        }
-
         public function loadClass($class) {
-            list($path, $last, $base) = self::parseName($class);
-            $common     = $path . DIRECTORY_SEPARATOR . $last;
-            $normalPath = OXYGEN_ROOT . $common  . '.class.php';
-            $yamlPath   = OXYGEN_ROOT .  $common . '.class.yml';
-            $compilePath    = OXYGEN_COMPILE_ROOT . $common . '.oxy.php';
-            $normalDir  = OXYGEN_ROOT . $path;
-            $compileDir     = OXYGEN_COMPILE_ROOT . $path;
-            if (!$base) {
-                try {
-                    return include_once $normalPath;
-                } catch (Oxygen_FileNotFoundException $e) {
+            return Oxygen_Class::make($class);
+        }
 
+
+
+        private static function serveAssets($type, $bundle) {
+            try {
+                $bundle_path = OXYGEN_ASSET_ROOT
+                . DIRECTORY_SEPARATOR . $type
+                . DIRECTORY_SEPARATOR . $bundle
+                . '.' . $type;
+                $m = filemtime($bundle_path);
+                $etag = '"'.$m.'"';
+                if(isset($_SERVER['HTTP_IF_NONE_MATCH'])){
+                    if ($etag === $_SERVER['HTTP_IF_NONE_MATCH']) {
+                        header('HTTP/1.1 304 Not modified');
+                        exit;
+                    }
                 }
+                header("Etag: $etag");
+                header(self::$mime[$type]);
+                readfile($bundle_path);
+            } catch (Oxygen_FileNotFoundException $e) {
+                header('HTTP/1.1 404 Not found');
             }
-            $n = self::modificationTime($normalDir);
-            if ($n === 0) return; // CLASS NOT FOUND;
-            $y = self::modificationTime($yamlPath);
-            $g = self::modificationTime($compileDir);
-            $compile = self::modificationTime($compilePath) < max($n,$g,$y,OXYGEN_MODIFIED,OXYGEN_MODIFIED_OXY);
-            if ($compile) {
-                if ($y === 0) $yaml = array('extends'=>'Oxygen_Controller');
-                else $yaml = self::getYaml($yamlPath);
-                if ($g === 0) self::getWritableDir(OXYGEN_COMPILE_ROOT, $path);
-                assert('is_writable($compileDir)');
-                $this->compileItem(
-                    $normalDir,
-                    $compilePath,
-                    $base ? substr($class,0,-strlen(self::OXYGEN_SUFFIX)) : $class,
-                    $yaml,
-                    str_replace(DIRECTORY_SEPARATOR, '/', $path),
-                    !$base
-                );
-            }
-            return include_once $compilePath;
         }
 
 		public function __construct($privateCacheRoot, $compileRoot = false, $assetRoot = false) {
+
             $startedAt = time();
+
+            define('OXYGEN_ROOT', dirname(dirname(__FILE__)));
+
+            self::requireFile('oxygen/class/class.class.php');
+
             set_error_handler('Oxygen::handleError');
             spl_autoload_register(array($this,'loadClass'));
-            define('OXYGEN_ROOT', dirname(dirname(__FILE__)));
+
             define('OXYGEN_BASE', dirname(__FILE__) . DIRECTORY_SEPARATOR);
             define('OXYGEN_ICONS_ROOT', OXYGEN_BASE . 'lib/silk-icons/icons');
+
             assert('is_string($privateCacheRoot)');
             self::getWritableDir($privateCacheRoot);
-            assert('is_dir($privateCacheRoot)');
-            assert('is_writable($privateCacheRoot)');
             define('OXYGEN_CACHE_ROOT', $privateCacheRoot);
+
             if ($compileRoot === false) {
                 $compileRoot = OXYGEN_ROOT;
             }
+
             assert('is_string($compileRoot)');
-			assert('is_dir($compileRoot)');
-			assert('is_writable($compileRoot)');
+            self::getWritableDir($compileRoot);
             define('OXYGEN_COMPILE_ROOT',$compileRoot);
+
 			if ($assetRoot === false) {
-				$assetRoot = $this->getWritableDir($compileRoot, array('assets'));
-			} else {
-				assert('is_string($assetRoot)');
-				assert('is_dir($assetRoot)');
-				assert('is_writable($assetRoot)');
+				$assetRoot = self::getWritableDir($compileRoot, array('assets'));
 			}
+
+			assert('is_string($assetRoot)');
+            self::getWritableDir($assetRoot);
             define('OXYGEN_ASSET_ROOT', $assetRoot);
-            define('OXYGEN_CSS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('css')));
-            define('OXYGEN_LESS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('less')));
+
+            define('OXYGEN_CSS_ROOT',  $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('css')));
+            define('OXYGEN_LESS_ROOT', $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('less')));
             define('OXYGEN_JS_ROOT',   $this->getWritableDir(OXYGEN_ASSET_ROOT,  array('js')));
 
             $requset = isset($_SERVER['REQUEST_URI'])
@@ -453,7 +220,7 @@
                 : ''
             ;
 
-            $scope            = new Oxygen_Scope();
+            $scope = new Oxygen_Scope();
 
             $scope->DOCUMENT_ROOT = $DOCUMENT_ROOT = isset($_SERVER['DOCUMENT_ROOT'])
                 ? $_SERVER['DOCUMENT_ROOT']
@@ -478,36 +245,15 @@
 
             //SERVE ASSETS;
             if (preg_match("#^$uri/([0-9a-f]{32})\.(css|less|js)$#", $requset, $match)) {
-                try {
-                    $bundle = $match[1];
-                    $type  = $match[2];
-                    $bundle_path = OXYGEN_ASSET_ROOT
-                    . DIRECTORY_SEPARATOR . $type
-                    . DIRECTORY_SEPARATOR . $bundle
-                    . '.' . $type;
-                    $m = filemtime($bundle_path);
-                    $etag = '"'.$m.'"';
-                    if(isset($_SERVER['HTTP_IF_NONE_MATCH'])){
-                        if ($etag === $_SERVER['HTTP_IF_NONE_MATCH']) {
-                            header('HTTP/1.1 304 Not modified');
-                            exit;
-                        }
-                    }
-                    header("Etag: $etag");
-                    header(self::$mime[$type]);
-                    readfile($bundle_path);
-                    exit;
-                } catch (Oxygen_FileNotFoundException $e) {
-                    header('HTTP/1.1 404 Not found');
-                    exit;
-                }
+                $bundle = $match[1];
+                $type  = $match[2];
+                self::serveAssets($type, $bundle);
+                exit;
             }
 
             define('OXYGEN_ROOT_URL',
                 ($is_https ? 'https://' : 'http://') . $HTTP_HOST . $uri
             );
-
-
             $scope->Oxygen    = array($this,'itself');
             $scope->o         = $this;
             $scope->_SESSION  = $scope->Oxygen_Session();
@@ -520,9 +266,14 @@
             $this->scope      = $scope;
             $this->scope->__set(self::$__oxygenScope);
             $this->loadClass('Oxygen_');
-		}
-
-		public function compile() {
+            $this->og = $scope->og = $scope->Oxygen_OpenGraph(
+                'Oxygen', 'Oxygen powered website', '', 'oxygen, php, web, framework'
+            );
+            $this->assets = $scope->assets = new ArrayObject(array(
+                'css'  => array(),
+                'less' => array(),
+                'js'   => array()
+            ));
 		}
 
         public function itself() {
@@ -545,17 +296,6 @@
 			try {
                 $o = $this;
                 $scope = $this->scope;
-                $scope->og = $scope->Oxygen_OpenGraph(
-                    'Oxygen',
-                    'Oxygen powered website',
-                    '',
-                    'oxygen, php, web, framework'
-                );
-                $scope->assets = new ArrayObject(array(
-                    'css'  => array(),
-                    'less' => array(),
-                    'js'   => array()
-                ));
 				include OXYGEN_ROOT . DIRECTORY_SEPARATOR . $name;
 			} catch (Exception $e) {
 				$this->put_exception($e);
@@ -614,19 +354,6 @@
         		$result = include OXYGEN_BASE . 'inspected.php';
         		return $result;
         	}
-
-            # oxy -----------------------------------------------------------
-
-            public function get_oxy($class) {
-                ob_start(); try {$this->put_oxy($class);}
-                catch (Exception $_) {}
-                if(isset($_)) {ob_end_clean(); throw $_;}
-                return ob_get_clean();
-            }
-
-            public function put_oxy($class) {
-                $result = include OXYGEN_BASE . 'oxy.php';
-            }
 
         # }
 

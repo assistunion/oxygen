@@ -11,12 +11,18 @@
         public static $__lastMetaModified = <?=time()?>;
 
         private static $static = null;
-        public static $name = '<?=$class->name?>';
+        public static $__className = '<?=$class->name?>';
         public static function __getClass() {
             if (self::$static === null) {
-                self::$static = new Oxygen_Class('<?=$class->name?>');
+                self::$static = Oxygen_Class::make('<?=$class->name?>');
             }
             return self::$static;
+        }
+
+        public static $__metaClass = '<?=$class->meta?>';
+
+        public static function __getMetaClass() {
+            return self::$__metaClass;
         }
 
         public static function __getParentClass() {
@@ -69,6 +75,8 @@
 
         # BEGIN VIEWS:
 <?foreach($class->views as $name=>$method):?>
+
+            public static $__<?=$name?>_target = '<?=$method->target?>';
             <?$args = preg_replace('/(^|,)/','\\1\$',implode(',',array_keys($method->args)))?>
             <?if($args=='$')$args=''?>
 

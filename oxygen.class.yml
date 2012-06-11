@@ -12,11 +12,6 @@ views:
         args: { value: Object }
         info: Put contents of given object in debug/inspectable form
 
-    oxy:
-        access: private
-        args: { class: Object }
-        info: Renders template
-
     exception:
         access: private
         args: { ex: Exception }

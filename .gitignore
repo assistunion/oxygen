@@ -1,5 +1,6 @@
 .idea/
 *.oxy.php
 !oxygen.oxy.php
+!class.oxy.php
 
 

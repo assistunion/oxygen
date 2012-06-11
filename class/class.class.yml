@@ -1,0 +1,18 @@
+extends: ~
+
+views:
+    oxy:
+        info: "Renders oxy-class body"
+        target: php
+
+    less:
+        info: "Renders less-css asset chunk for given view"
+        target: less-css
+
+    css:
+        info: "Renders css asset chunk for given view"
+        target: css
+
+    js:
+        info: "Renders javascript asset chunk for given view"
+        target: javascript
